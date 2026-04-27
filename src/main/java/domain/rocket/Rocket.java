@@ -30,6 +30,19 @@ public class Rocket {
         return Collections.unmodifiableList(boosters);
     }
 
+    public void addBooster(Booster booster) {
+        boosters.add(booster);
+    }
+
+    public void addBoosters(List<Booster> boosters) {
+        this.boosters.addAll(boosters);
+    }
+
+    public void addBoosters(Booster firstBooster, Booster secondBooster) {
+        boosters.add(firstBooster);
+        boosters.add(secondBooster);
+    }
+
     public double getTotalMassTons() {
         double total = capsule.getMassTons();
         for (Booster booster : boosters) {
