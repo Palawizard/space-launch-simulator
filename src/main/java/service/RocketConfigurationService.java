@@ -17,6 +17,19 @@ public class RocketConfigurationService {
         Objects.requireNonNull(launcher, "Launcher is required");
         Objects.requireNonNull(capsule, "Capsule is required");
         Objects.requireNonNull(boosters, "Boosters are required");
+        validateBoosterLimit(launcher, boosters);
         return new Rocket(launcher, capsule, boosters);
+    }
+
+    public boolean canUseBoosters(Launcher launcher, List<Booster> boosters) {
+        Objects.requireNonNull(launcher, "Launcher is required");
+        Objects.requireNonNull(boosters, "Boosters are required");
+        return boosters.size() <= launcher.getMaxBoosters();
+    }
+
+    private void validateBoosterLimit(Launcher launcher, List<Booster> boosters) {
+        if (!canUseBoosters(launcher, boosters)) {
+            throw new IllegalArgumentException("Too many boosters for " + launcher.getName());
+        }
     }
 }
