@@ -60,10 +60,34 @@ public class Rocket {
     }
 
     public String getSummary() {
-        return "Launcher: " + launcher.getName()
+        return "Rocket configuration"
+                + "\nLauncher: " + launcher.getName()
+                + "\nLauncher profile: " + launcher.getLaunchProfile()
+                + "\nLauncher max boosters: " + launcher.getMaxBoosters()
+                + "\nLauncher max fuel: " + launcher.getMaxFuelTons() + " t"
+                + "\nLauncher payload capacity: " + launcher.getPayloadCapacityTons() + " t"
                 + "\nCapsule: " + capsule.getName()
-                + "\nBoosters: " + boosters.size()
+                + "\nCapsule role: " + capsule.getMissionRole()
+                + "\nCapsule crewed: " + formatBoolean(capsule.isCrewed())
+                + "\nCapsule max occupants: " + capsule.getMaxOccupants()
+                + "\nBoosters: " + getBoosterSummary()
                 + "\nTotal mass: " + getTotalMassTons() + " t"
                 + "\nTotal price: " + getTotalPriceMillionEuros() + " M EUR";
+    }
+
+    private String getBoosterSummary() {
+        if (boosters.isEmpty()) {
+            return "None";
+        }
+
+        List<String> boosterNames = new ArrayList<>();
+        for (Booster booster : boosters) {
+            boosterNames.add(booster.getName());
+        }
+        return boosters.size() + " (" + String.join(", ", boosterNames) + ")";
+    }
+
+    private String formatBoolean(boolean value) {
+        return value ? "Yes" : "No";
     }
 }
