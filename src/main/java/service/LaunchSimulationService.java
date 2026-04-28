@@ -1,5 +1,6 @@
 package service;
 
+import domain.launch.LaunchResult;
 import domain.mission.Mission;
 import domain.rocket.Rocket;
 import exception.IncompatibleCrewedMissionException;
@@ -8,6 +9,7 @@ import exception.LaunchException;
 import exception.PayloadCapacityExceededException;
 import exception.TechnicalAnomalyException;
 import exception.TooManyBoostersException;
+import java.time.LocalDateTime;
 import java.util.Random;
 
 public class LaunchSimulationService {
@@ -56,5 +58,30 @@ public class LaunchSimulationService {
         if (random.nextDouble() < RANDOM_FAILURE_PROBABILITY) {
             throw new TechnicalAnomalyException();
         }
+    }
+
+    public LaunchResult runLaunch(Rocket rocket, Mission mission) {
+        double fuelRequiredTons = calculateFuelRequiredTons(rocket, mission);
+        double totalCostEuros = calculateLaunchCostEuros(rocket, mission);
+
+        try {
+            validateLaunchConditions(rocket, mission);
+            validateRandomLaunchRisk();
+            return createLaunchResult(rocket, mission, true, "Launch successful", fuelRequiredTons, totalCostEuros);
+        } catch (LaunchException exception) {
+            return createLaunchResult(rocket, mission, false, exception.getMessage(), fuelRequiredTons, totalCostEuros);
+        }
+    }
+
+    private LaunchResult createLaunchResult(Rocket rocket, Mission mission, boolean success, String reason, double fuelRequiredTons, double totalCostEuros) {
+        return new LaunchResult(
+                LocalDateTime.now(),
+                rocket.getSummary(),
+                mission.getName(),
+                success,
+                reason,
+                fuelRequiredTons,
+                totalCostEuros
+        );
     }
 }
