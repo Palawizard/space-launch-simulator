@@ -55,7 +55,7 @@ public class ConsoleInterface {
                     "Run launch simulation",
                     "Display history",
                     "Exit"
-            )));
+            ), getCurrentSelectionSummary()));
         }
     }
 
@@ -302,12 +302,16 @@ public class ConsoleInterface {
     }
 
     private int showSelectionMenu(String title, List<String> options) {
+        return showSelectionMenu(title, options, "");
+    }
+
+    private int showSelectionMenu(String title, List<String> options, String footer) {
         int selectedIndex = 0;
         enableRawMode();
 
         try {
             while (true) {
-                drawSelectionMenu(title, options, selectedIndex);
+                drawSelectionMenu(title, options, selectedIndex, footer);
                 int key = readKey();
 
                 if (key == KEY_UP) {
@@ -323,7 +327,7 @@ public class ConsoleInterface {
         }
     }
 
-    private void drawSelectionMenu(String title, List<String> options, int selectedIndex) {
+    private void drawSelectionMenu(String title, List<String> options, int selectedIndex, String footer) {
         clearScreen();
         System.out.println(title);
         System.out.println();
@@ -341,6 +345,40 @@ public class ConsoleInterface {
 
         System.out.println();
         System.out.println("Use up/down arrows and Enter.");
+
+        if (!footer.isBlank()) {
+            System.out.println();
+            System.out.println(footer);
+        }
+    }
+
+    private String getCurrentSelectionSummary() {
+        StringBuilder summary = new StringBuilder();
+        summary.append("Current selection").append("\n");
+        summary.append("Launcher: ").append(selectedLauncher == null ? "None" : selectedLauncher.getName()).append("\n");
+        summary.append("Capsule: ").append(selectedCapsule == null ? "None" : selectedCapsule.getName()).append("\n");
+        summary.append("Boosters: ").append(getSelectedBoostersSummary()).append("\n");
+        summary.append("Mission: ").append(selectedMission == null ? "None" : selectedMission.getName());
+
+        if (configuredRocket != null) {
+            summary.append("\n");
+            summary.append("Rocket mass: ").append(configuredRocket.getTotalMassTons()).append(" t").append("\n");
+            summary.append("Rocket price: ").append(configuredRocket.getTotalPriceMillionEuros()).append(" M EUR");
+        }
+
+        return summary.toString();
+    }
+
+    private String getSelectedBoostersSummary() {
+        if (selectedBoosters.isEmpty()) {
+            return "None";
+        }
+
+        List<String> boosterNames = new ArrayList<>();
+        for (Booster booster : selectedBoosters) {
+            boosterNames.add(booster.getName());
+        }
+        return selectedBoosters.size() + " (" + String.join(", ", boosterNames) + ")";
     }
 
     private void showMessage(String title, String message) {
