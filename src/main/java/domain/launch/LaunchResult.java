@@ -1,8 +1,11 @@
 package domain.launch;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class LaunchResult {
+    private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private final LocalDateTime date;
     private final String rocketSummary;
     private final String missionName;
@@ -53,8 +56,12 @@ public class LaunchResult {
         return success ? "Success" : "Failure";
     }
 
+    public String getFormattedDate() {
+        return date.format(DISPLAY_DATE_FORMATTER);
+    }
+
     public String getSummary() {
-        return "Date: " + date
+        return "Date: " + getFormattedDate()
                 + "\nMission: " + missionName
                 + "\nResult: " + getVerdict()
                 + "\nReason: " + reason

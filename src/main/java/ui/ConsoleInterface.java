@@ -298,7 +298,7 @@ public class ConsoleInterface {
             for (int index = 0; index < history.size(); index++) {
                 LaunchResult launchResult = history.get(index);
                 options.add((index + 1) + ". "
-                        + launchResult.getDate()
+                        + launchResult.getFormattedDate()
                         + " | " + launchResult.getMissionName()
                         + " | " + launchResult.getVerdict());
             }
