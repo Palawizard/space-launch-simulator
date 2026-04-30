@@ -3,6 +3,7 @@ package ui;
 import domain.booster.Booster;
 import domain.capsule.Capsule;
 import domain.launcher.Launcher;
+import domain.mission.CustomMission;
 import domain.mission.Mission;
 import java.util.ArrayList;
 import java.util.List;
@@ -147,10 +148,29 @@ public class ConsoleInterface {
                     + " | fuel coefficient " + mission.getFuelCoefficient());
         }
 
+        System.out.println(missions.size() + ". Custom mission");
         System.out.print("Choose a mission: ");
         int choice = Integer.parseInt(scanner.nextLine());
-        selectedMission = missions.get(choice - 1);
+        if (choice == missions.size()) {
+            selectedMission = createCustomMission();
+        } else {
+            selectedMission = missions.get(choice - 1);
+        }
         System.out.println("Selected mission: " + selectedMission.getName());
+    }
+
+    private Mission createCustomMission() {
+        System.out.print("Mission name: ");
+        String name = scanner.nextLine();
+        System.out.print("Crew required? yes/no: ");
+        boolean crewRequired = scanner.nextLine().equalsIgnoreCase("yes");
+        System.out.print("Distance in kilometers: ");
+        double distanceKilometers = Double.parseDouble(scanner.nextLine());
+        System.out.print("Duration: ");
+        String duration = scanner.nextLine();
+        System.out.print("Fuel coefficient: ");
+        double fuelCoefficient = Double.parseDouble(scanner.nextLine());
+        return new CustomMission(name, crewRequired, distanceKilometers, duration, fuelCoefficient);
     }
 
     private String formatBoolean(boolean value) {
