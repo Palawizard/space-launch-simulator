@@ -1,6 +1,8 @@
 package persistence;
 
 import domain.launch.LaunchResult;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ public class LaunchHistoryService {
 
     private final Path historyPath;
     private final List<LaunchResult> history;
+    private final LaunchResultCsvMapper csvMapper;
 
     public LaunchHistoryService() {
         this(DEFAULT_HISTORY_PATH);
@@ -20,6 +23,7 @@ public class LaunchHistoryService {
     public LaunchHistoryService(Path historyPath) {
         this.historyPath = historyPath;
         this.history = new ArrayList<>();
+        this.csvMapper = new LaunchResultCsvMapper();
     }
 
     public Path getHistoryPath() {
@@ -37,5 +41,16 @@ public class LaunchHistoryService {
     public void replaceHistory(List<LaunchResult> launchResults) {
         history.clear();
         history.addAll(launchResults);
+    }
+
+    public void loadHistory() throws IOException {
+        List<String> lines = Files.readAllLines(historyPath);
+        List<LaunchResult> loadedHistory = new ArrayList<>();
+
+        for (int index = 1; index < lines.size(); index++) {
+            loadedHistory.add(csvMapper.fromCsvLine(lines.get(index)));
+        }
+
+        replaceHistory(loadedHistory);
     }
 }
