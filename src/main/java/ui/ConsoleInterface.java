@@ -18,6 +18,7 @@ import service.LaunchSimulationService;
 import service.RocketConfigurationService;
 
 public class ConsoleInterface {
+    private static final String APP_TITLE = "Space Launch Simulator";
     private static final String CLEAR_SCREEN = "\033[H\033[2J";
     private static final String RESET = "\033[0m";
     private static final String HIGHLIGHT = "\033[7m";
@@ -50,7 +51,7 @@ public class ConsoleInterface {
 
     public void start() {
         while (running) {
-            handleMainMenuChoice(showSelectionMenu("Space Launch Simulator", List.of(
+            handleMainMenuChoice(showSelectionMenu("Main menu", List.of(
                     "Configure rocket",
                     "Choose mission",
                     "Run launch simulation",
@@ -245,6 +246,7 @@ public class ConsoleInterface {
 
     private Mission createCustomMission() {
         clearScreen();
+        printHeader();
         System.out.println("Custom mission");
         System.out.println();
         System.out.println("Leave the mission name empty to go back.");
@@ -350,6 +352,7 @@ public class ConsoleInterface {
 
     private void drawSelectionMenu(String title, List<String> options, int selectedIndex, String footer) {
         clearScreen();
+        printHeader();
         System.out.println(title);
         System.out.println();
 
@@ -404,6 +407,7 @@ public class ConsoleInterface {
 
     private void showMessage(String title, String message) {
         clearScreen();
+        printHeader();
         System.out.println(title);
         System.out.println();
         System.out.println(message);
@@ -445,6 +449,11 @@ public class ConsoleInterface {
     private void clearScreen() {
         System.out.print(CLEAR_SCREEN);
         System.out.flush();
+    }
+
+    private void printHeader() {
+        System.out.println(APP_TITLE);
+        System.out.println();
     }
 
     private void enableRawMode() {
