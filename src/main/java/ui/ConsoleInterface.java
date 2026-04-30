@@ -24,6 +24,7 @@ public class ConsoleInterface {
     private static final int KEY_ENTER = 10;
     private static final int KEY_UP = 1001;
     private static final int KEY_DOWN = 1002;
+    private static final int KEY_END = -1;
 
     private final Scanner scanner;
     private final ComponentCatalog componentCatalog;
@@ -279,26 +280,44 @@ public class ConsoleInterface {
 
         LaunchResult launchResult = launchSimulationService.runLaunch(configuredRocket, selectedMission);
         showMessage("Launch result", launchResult.getSummary());
+        resetSelection();
     }
 
     private void displayHistory() {
         List<LaunchResult> history = launchHistoryService.getHistory();
-        StringBuilder content = new StringBuilder();
-
         if (history.isEmpty()) {
-            content.append("No launch history yet.");
-        } else {
-            for (int index = 0; index < history.size(); index++) {
-                content.append("Launch ").append(index + 1).append("\n");
-                content.append(history.get(index).getSummary());
-
-                if (index < history.size() - 1) {
-                    content.append("\n\n");
-                }
-            }
+            showMessage("Launch history", "No launch history yet.");
+            return;
         }
 
-        showMessage("Launch history", content.toString());
+        while (true) {
+            List<String> options = new ArrayList<>();
+
+            for (int index = 0; index < history.size(); index++) {
+                LaunchResult launchResult = history.get(index);
+                options.add((index + 1) + ". "
+                        + launchResult.getDate()
+                        + " | " + launchResult.getMissionName()
+                        + " | " + launchResult.getVerdict());
+            }
+
+            options.add("Back");
+            int choice = showSelectionMenu("Launch history", options);
+
+            if (choice == options.size() - 1) {
+                return;
+            }
+
+            showMessage("Launch " + (choice + 1), history.get(choice).getSummary());
+        }
+    }
+
+    private void resetSelection() {
+        selectedLauncher = null;
+        selectedCapsule = null;
+        selectedBoosters = new ArrayList<>();
+        selectedMission = null;
+        configuredRocket = null;
     }
 
     private int showSelectionMenu(String title, List<String> options) {
@@ -320,6 +339,8 @@ public class ConsoleInterface {
                     selectedIndex = selectedIndex == options.size() - 1 ? 0 : selectedIndex + 1;
                 } else if (key == KEY_ENTER) {
                     return selectedIndex;
+                } else if (key == KEY_END) {
+                    return options.size() - 1;
                 }
             }
         } finally {
@@ -388,12 +409,18 @@ public class ConsoleInterface {
         System.out.println(message);
         System.out.println();
         System.out.println("Press Enter to go back.");
-        scanner.nextLine();
+        if (scanner.hasNextLine()) {
+            scanner.nextLine();
+        }
     }
 
     private int readKey() {
         try {
             int first = System.in.read();
+
+            if (first == -1) {
+                return KEY_END;
+            }
 
             if (first == 13 || first == 10) {
                 return KEY_ENTER;
