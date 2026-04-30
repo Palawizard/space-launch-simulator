@@ -2,6 +2,7 @@ package app;
 
 import java.io.IOException;
 import persistence.LaunchHistoryService;
+import ui.ConsoleInterface;
 
 public class SpaceLaunchApplication {
     private final LaunchHistoryService launchHistoryService;
@@ -16,7 +17,8 @@ public class SpaceLaunchApplication {
 
     public void start() {
         loadHistory();
-        System.out.println("Space Launch Simulator is ready.");
+        ConsoleInterface consoleInterface = new ConsoleInterface();
+        consoleInterface.start();
     }
 
     private void loadHistory() {
