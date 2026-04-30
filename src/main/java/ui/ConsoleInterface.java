@@ -1,5 +1,6 @@
 package ui;
 
+import domain.capsule.Capsule;
 import domain.launcher.Launcher;
 import java.util.List;
 import java.util.Scanner;
@@ -9,6 +10,7 @@ public class ConsoleInterface {
     private final Scanner scanner;
     private final ComponentCatalog componentCatalog;
     private Launcher selectedLauncher;
+    private Capsule selectedCapsule;
     private boolean running;
 
     public ConsoleInterface() {
@@ -39,6 +41,7 @@ public class ConsoleInterface {
         switch (choice) {
             case "1":
                 selectLauncher();
+                selectCapsule();
                 break;
             case "2":
             case "3":
@@ -73,5 +76,29 @@ public class ConsoleInterface {
         int choice = Integer.parseInt(scanner.nextLine());
         selectedLauncher = launchers.get(choice - 1);
         System.out.println("Selected launcher: " + selectedLauncher.getName());
+    }
+
+    private void selectCapsule() {
+        List<Capsule> capsules = componentCatalog.getCapsules();
+        System.out.println();
+        System.out.println("Available capsules");
+
+        for (int index = 0; index < capsules.size(); index++) {
+            Capsule capsule = capsules.get(index);
+            System.out.println((index + 1) + ". " + capsule.getName()
+                    + " | crewed " + formatBoolean(capsule.isCrewed())
+                    + " | occupants " + capsule.getMaxOccupants()
+                    + " | mass " + capsule.getMassTons() + " t"
+                    + " | price " + capsule.getPriceMillionEuros() + " M EUR");
+        }
+
+        System.out.print("Choose a capsule: ");
+        int choice = Integer.parseInt(scanner.nextLine());
+        selectedCapsule = capsules.get(choice - 1);
+        System.out.println("Selected capsule: " + selectedCapsule.getName());
+    }
+
+    private String formatBoolean(boolean value) {
+        return value ? "Yes" : "No";
     }
 }
