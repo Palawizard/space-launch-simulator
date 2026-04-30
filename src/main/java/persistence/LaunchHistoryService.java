@@ -53,4 +53,19 @@ public class LaunchHistoryService {
 
         replaceHistory(loadedHistory);
     }
+
+    public void saveHistory() throws IOException {
+        if (historyPath.getParent() != null) {
+            Files.createDirectories(historyPath.getParent());
+        }
+
+        List<String> lines = new ArrayList<>();
+        lines.add(LaunchResultCsvMapper.HEADER);
+
+        for (LaunchResult launchResult : history) {
+            lines.add(csvMapper.toCsvLine(launchResult));
+        }
+
+        Files.write(historyPath, lines);
+    }
 }
