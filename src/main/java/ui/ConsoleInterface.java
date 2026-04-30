@@ -41,7 +41,7 @@ public class ConsoleInterface {
     public void start() {
         while (running) {
             showMainMenu();
-            handleMainMenuChoice(scanner.nextLine());
+            handleMainMenuChoice(readMenuChoice());
         }
     }
 
@@ -56,23 +56,23 @@ public class ConsoleInterface {
         System.out.print("Choose an option: ");
     }
 
-    private void handleMainMenuChoice(String choice) {
+    private void handleMainMenuChoice(int choice) {
         switch (choice) {
-            case "1":
+            case 1:
                 selectLauncher();
                 selectCapsule();
                 selectBoosters();
                 break;
-            case "2":
+            case 2:
                 selectMission();
                 break;
-            case "3":
+            case 3:
                 runLaunchSimulation();
                 break;
-            case "4":
+            case 4:
                 displayHistory();
                 break;
-            case "5":
+            case 5:
                 running = false;
                 System.out.println("Goodbye.");
                 break;
@@ -97,7 +97,7 @@ public class ConsoleInterface {
         }
 
         System.out.print("Choose a launcher: ");
-        int choice = Integer.parseInt(scanner.nextLine());
+        int choice = readChoice(1, launchers.size());
         selectedLauncher = launchers.get(choice - 1);
         System.out.println("Selected launcher: " + selectedLauncher.getName());
     }
@@ -117,7 +117,7 @@ public class ConsoleInterface {
         }
 
         System.out.print("Choose a capsule: ");
-        int choice = Integer.parseInt(scanner.nextLine());
+        int choice = readChoice(1, capsules.size());
         selectedCapsule = capsules.get(choice - 1);
         System.out.println("Selected capsule: " + selectedCapsule.getName());
     }
@@ -137,18 +137,23 @@ public class ConsoleInterface {
         }
 
         System.out.print("How many boosters do you want to add? ");
-        int boosterCount = Integer.parseInt(scanner.nextLine());
+        int boosterCount = readNonNegativeInteger();
 
         for (int index = 0; index < boosterCount; index++) {
             System.out.print("Choose booster " + (index + 1) + ": ");
-            int choice = Integer.parseInt(scanner.nextLine());
+            int choice = readChoice(1, boosters.size());
             selectedBoosters.add(boosters.get(choice - 1));
         }
 
         System.out.println("Selected boosters: " + selectedBoosters.size());
-        configuredRocket = rocketConfigurationService.buildRocket(selectedLauncher, selectedCapsule, selectedBoosters);
-        System.out.println();
-        System.out.println(configuredRocket.getSummary());
+        try {
+            configuredRocket = rocketConfigurationService.buildRocket(selectedLauncher, selectedCapsule, selectedBoosters);
+            System.out.println();
+            System.out.println(configuredRocket.getSummary());
+        } catch (IllegalArgumentException exception) {
+            configuredRocket = null;
+            System.out.println(exception.getMessage());
+        }
     }
 
     private void selectMission() {
@@ -167,7 +172,7 @@ public class ConsoleInterface {
 
         System.out.println(missions.size() + ". Custom mission");
         System.out.print("Choose a mission: ");
-        int choice = Integer.parseInt(scanner.nextLine());
+        int choice = readChoice(1, missions.size());
         if (choice == missions.size()) {
             selectedMission = createCustomMission();
         } else {
@@ -178,15 +183,15 @@ public class ConsoleInterface {
 
     private Mission createCustomMission() {
         System.out.print("Mission name: ");
-        String name = scanner.nextLine();
+        String name = readRequiredText();
         System.out.print("Crew required? yes/no: ");
-        boolean crewRequired = scanner.nextLine().equalsIgnoreCase("yes");
+        boolean crewRequired = readYesNo();
         System.out.print("Distance in kilometers: ");
-        double distanceKilometers = Double.parseDouble(scanner.nextLine());
+        double distanceKilometers = readPositiveDouble();
         System.out.print("Duration: ");
-        String duration = scanner.nextLine();
+        String duration = readRequiredText();
         System.out.print("Fuel coefficient: ");
-        double fuelCoefficient = Double.parseDouble(scanner.nextLine());
+        double fuelCoefficient = readPositiveDouble();
         return new CustomMission(name, crewRequired, distanceKilometers, duration, fuelCoefficient);
     }
 
@@ -225,5 +230,77 @@ public class ConsoleInterface {
 
     private String formatBoolean(boolean value) {
         return value ? "Yes" : "No";
+    }
+
+    private int readMenuChoice() {
+        return readChoice(1, 5);
+    }
+
+    private int readChoice(int minimum, int maximum) {
+        while (true) {
+            try {
+                int value = Integer.parseInt(scanner.nextLine());
+                if (value >= minimum && value <= maximum) {
+                    return value;
+                }
+            } catch (NumberFormatException exception) {
+                System.out.print("Enter a valid number: ");
+                continue;
+            }
+            System.out.print("Enter a number between " + minimum + " and " + maximum + ": ");
+        }
+    }
+
+    private int readNonNegativeInteger() {
+        while (true) {
+            try {
+                int value = Integer.parseInt(scanner.nextLine());
+                if (value >= 0) {
+                    return value;
+                }
+            } catch (NumberFormatException exception) {
+                System.out.print("Enter a valid number: ");
+                continue;
+            }
+            System.out.print("Enter zero or a positive number: ");
+        }
+    }
+
+    private double readPositiveDouble() {
+        while (true) {
+            try {
+                double value = Double.parseDouble(scanner.nextLine());
+                if (value > 0) {
+                    return value;
+                }
+            } catch (NumberFormatException exception) {
+                System.out.print("Enter a valid number: ");
+                continue;
+            }
+            System.out.print("Enter a positive number: ");
+        }
+    }
+
+    private boolean readYesNo() {
+        while (true) {
+            String value = scanner.nextLine();
+            if (value.equalsIgnoreCase("yes")) {
+                return true;
+            }
+            if (value.equalsIgnoreCase("no")) {
+                return false;
+            }
+            System.out.print("Enter yes or no: ");
+        }
+    }
+
+    private String readRequiredText() {
+        while (true) {
+            String value = scanner.nextLine();
+            if (!value.isBlank()) {
+                return value;
+            }
+            System.out.print("Enter a value: ");
+        }
     }
 }
