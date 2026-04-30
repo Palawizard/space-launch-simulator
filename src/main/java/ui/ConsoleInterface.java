@@ -1,13 +1,19 @@
 package ui;
 
+import domain.launcher.Launcher;
+import java.util.List;
 import java.util.Scanner;
+import service.ComponentCatalog;
 
 public class ConsoleInterface {
     private final Scanner scanner;
+    private final ComponentCatalog componentCatalog;
+    private Launcher selectedLauncher;
     private boolean running;
 
     public ConsoleInterface() {
         this.scanner = new Scanner(System.in);
+        this.componentCatalog = new ComponentCatalog();
         this.running = true;
     }
 
@@ -32,6 +38,8 @@ public class ConsoleInterface {
     private void handleMainMenuChoice(String choice) {
         switch (choice) {
             case "1":
+                selectLauncher();
+                break;
             case "2":
             case "3":
             case "4":
@@ -45,5 +53,25 @@ public class ConsoleInterface {
                 System.out.println("Invalid option.");
                 break;
         }
+    }
+
+    private void selectLauncher() {
+        List<Launcher> launchers = componentCatalog.getLaunchers();
+        System.out.println();
+        System.out.println("Available launchers");
+
+        for (int index = 0; index < launchers.size(); index++) {
+            Launcher launcher = launchers.get(index);
+            System.out.println((index + 1) + ". " + launcher.getName()
+                    + " | payload " + launcher.getPayloadCapacityTons() + " t"
+                    + " | fuel " + launcher.getMaxFuelTons() + " t"
+                    + " | max boosters " + launcher.getMaxBoosters()
+                    + " | price " + launcher.getPriceMillionEuros() + " M EUR");
+        }
+
+        System.out.print("Choose a launcher: ");
+        int choice = Integer.parseInt(scanner.nextLine());
+        selectedLauncher = launchers.get(choice - 1);
+        System.out.println("Selected launcher: " + selectedLauncher.getName());
     }
 }
