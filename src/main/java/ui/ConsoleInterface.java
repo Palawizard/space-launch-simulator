@@ -20,6 +20,7 @@ public class ConsoleInterface {
     private final ComponentCatalog componentCatalog;
     private final RocketConfigurationService rocketConfigurationService;
     private final LaunchSimulationService launchSimulationService;
+    private final LaunchHistoryService launchHistoryService;
     private Launcher selectedLauncher;
     private Capsule selectedCapsule;
     private List<Booster> selectedBoosters;
@@ -32,6 +33,7 @@ public class ConsoleInterface {
         this.componentCatalog = new ComponentCatalog();
         this.rocketConfigurationService = new RocketConfigurationService();
         this.launchSimulationService = new LaunchSimulationService(launchHistoryService);
+        this.launchHistoryService = launchHistoryService;
         this.selectedBoosters = new ArrayList<>();
         this.running = true;
     }
@@ -68,7 +70,7 @@ public class ConsoleInterface {
                 runLaunchSimulation();
                 break;
             case "4":
-                System.out.println("This feature is not available yet.");
+                displayHistory();
                 break;
             case "5":
                 running = false;
@@ -202,6 +204,23 @@ public class ConsoleInterface {
         LaunchResult launchResult = launchSimulationService.runLaunch(configuredRocket, selectedMission);
         System.out.println();
         System.out.println(launchResult.getSummary());
+    }
+
+    private void displayHistory() {
+        List<LaunchResult> history = launchHistoryService.getHistory();
+        System.out.println();
+        System.out.println("Launch history");
+
+        if (history.isEmpty()) {
+            System.out.println("No launch history yet.");
+            return;
+        }
+
+        for (int index = 0; index < history.size(); index++) {
+            System.out.println();
+            System.out.println("Launch " + (index + 1));
+            System.out.println(history.get(index).getSummary());
+        }
     }
 
     private String formatBoolean(boolean value) {
