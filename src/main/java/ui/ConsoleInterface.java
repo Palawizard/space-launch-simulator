@@ -3,6 +3,7 @@ package ui;
 import domain.booster.Booster;
 import domain.capsule.Capsule;
 import domain.launcher.Launcher;
+import domain.mission.Mission;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -14,6 +15,7 @@ public class ConsoleInterface {
     private Launcher selectedLauncher;
     private Capsule selectedCapsule;
     private List<Booster> selectedBoosters;
+    private Mission selectedMission;
     private boolean running;
 
     public ConsoleInterface() {
@@ -49,6 +51,8 @@ public class ConsoleInterface {
                 selectBoosters();
                 break;
             case "2":
+                selectMission();
+                break;
             case "3":
             case "4":
                 System.out.println("This feature is not available yet.");
@@ -127,6 +131,26 @@ public class ConsoleInterface {
         }
 
         System.out.println("Selected boosters: " + selectedBoosters.size());
+    }
+
+    private void selectMission() {
+        List<Mission> missions = componentCatalog.getMissions();
+        System.out.println();
+        System.out.println("Available missions");
+
+        for (int index = 0; index < missions.size() - 1; index++) {
+            Mission mission = missions.get(index);
+            System.out.println((index + 1) + ". " + mission.getName()
+                    + " | crew required " + formatBoolean(mission.isCrewRequired())
+                    + " | distance " + mission.getDistanceKilometers() + " km"
+                    + " | duration " + mission.getDuration()
+                    + " | fuel coefficient " + mission.getFuelCoefficient());
+        }
+
+        System.out.print("Choose a mission: ");
+        int choice = Integer.parseInt(scanner.nextLine());
+        selectedMission = missions.get(choice - 1);
+        System.out.println("Selected mission: " + selectedMission.getName());
     }
 
     private String formatBoolean(boolean value) {
