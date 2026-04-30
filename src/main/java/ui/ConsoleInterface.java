@@ -7,6 +7,8 @@ import domain.launcher.Launcher;
 import domain.mission.CustomMission;
 import domain.mission.Mission;
 import domain.rocket.Rocket;
+import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -16,6 +18,13 @@ import service.LaunchSimulationService;
 import service.RocketConfigurationService;
 
 public class ConsoleInterface {
+    private static final String CLEAR_SCREEN = "\033[H\033[2J";
+    private static final String RESET = "\033[0m";
+    private static final String HIGHLIGHT = "\033[7m";
+    private static final int KEY_ENTER = 10;
+    private static final int KEY_UP = 1001;
+    private static final int KEY_DOWN = 1002;
+
     private final Scanner scanner;
     private final ComponentCatalog componentCatalog;
     private final RocketConfigurationService rocketConfigurationService;
@@ -40,150 +49,212 @@ public class ConsoleInterface {
 
     public void start() {
         while (running) {
-            showMainMenu();
-            handleMainMenuChoice(readMenuChoice());
+            handleMainMenuChoice(showSelectionMenu("Space Launch Simulator", List.of(
+                    "Configure rocket",
+                    "Choose mission",
+                    "Run launch simulation",
+                    "Display history",
+                    "Exit"
+            )));
         }
-    }
-
-    private void showMainMenu() {
-        System.out.println();
-        System.out.println("Space Launch Simulator");
-        System.out.println("1. Configure rocket");
-        System.out.println("2. Choose mission");
-        System.out.println("3. Run launch simulation");
-        System.out.println("4. Display history");
-        System.out.println("5. Exit");
-        System.out.print("Choose an option: ");
     }
 
     private void handleMainMenuChoice(int choice) {
         switch (choice) {
-            case 1:
-                selectLauncher();
-                selectCapsule();
-                selectBoosters();
+            case 0:
+                configureRocket();
                 break;
-            case 2:
+            case 1:
                 selectMission();
                 break;
-            case 3:
+            case 2:
                 runLaunchSimulation();
                 break;
-            case 4:
+            case 3:
                 displayHistory();
                 break;
-            case 5:
+            case 4:
                 running = false;
+                clearScreen();
                 System.out.println("Goodbye.");
                 break;
             default:
-                System.out.println("Invalid option.");
                 break;
         }
     }
 
-    private void selectLauncher() {
-        List<Launcher> launchers = componentCatalog.getLaunchers();
-        System.out.println();
-        System.out.println("Available launchers");
+    private void configureRocket() {
+        while (true) {
+            if (!selectLauncher()) {
+                return;
+            }
+            if (!selectCapsule()) {
+                continue;
+            }
+            if (selectBoosters()) {
+                return;
+            }
+        }
+    }
 
-        for (int index = 0; index < launchers.size(); index++) {
-            Launcher launcher = launchers.get(index);
-            System.out.println((index + 1) + ". " + launcher.getName()
+    private boolean selectLauncher() {
+        List<Launcher> launchers = componentCatalog.getLaunchers();
+        List<String> options = new ArrayList<>();
+
+        for (Launcher launcher : launchers) {
+            options.add(launcher.getName()
                     + " | payload " + launcher.getPayloadCapacityTons() + " t"
                     + " | fuel " + launcher.getMaxFuelTons() + " t"
                     + " | max boosters " + launcher.getMaxBoosters()
                     + " | price " + launcher.getPriceMillionEuros() + " M EUR");
         }
 
-        System.out.print("Choose a launcher: ");
-        int choice = readChoice(1, launchers.size());
-        selectedLauncher = launchers.get(choice - 1);
-        System.out.println("Selected launcher: " + selectedLauncher.getName());
+        options.add("Back");
+        int choice = showSelectionMenu("Available launchers", options);
+        if (choice == options.size() - 1) {
+            return false;
+        }
+
+        selectedLauncher = launchers.get(choice);
+        return true;
     }
 
-    private void selectCapsule() {
+    private boolean selectCapsule() {
         List<Capsule> capsules = componentCatalog.getCapsules();
-        System.out.println();
-        System.out.println("Available capsules");
+        List<String> options = new ArrayList<>();
 
-        for (int index = 0; index < capsules.size(); index++) {
-            Capsule capsule = capsules.get(index);
-            System.out.println((index + 1) + ". " + capsule.getName()
+        for (Capsule capsule : capsules) {
+            options.add(capsule.getName()
                     + " | crewed " + formatBoolean(capsule.isCrewed())
                     + " | occupants " + capsule.getMaxOccupants()
                     + " | mass " + capsule.getMassTons() + " t"
                     + " | price " + capsule.getPriceMillionEuros() + " M EUR");
         }
 
-        System.out.print("Choose a capsule: ");
-        int choice = readChoice(1, capsules.size());
-        selectedCapsule = capsules.get(choice - 1);
-        System.out.println("Selected capsule: " + selectedCapsule.getName());
+        options.add("Back");
+        int choice = showSelectionMenu("Available capsules", options);
+        if (choice == options.size() - 1) {
+            return false;
+        }
+
+        selectedCapsule = capsules.get(choice);
+        return true;
     }
 
-    private void selectBoosters() {
+    private boolean selectBoosters() {
         selectedBoosters = new ArrayList<>();
-        List<Booster> boosters = componentCatalog.getBoosters();
-        System.out.println();
-        System.out.println("Available boosters");
+        int boosterCount = selectBoosterCount();
 
-        for (int index = 0; index < boosters.size(); index++) {
-            Booster booster = boosters.get(index);
-            System.out.println((index + 1) + ". " + booster.getName()
+        if (boosterCount < 0) {
+            return false;
+        }
+
+        for (int index = 0; index < boosterCount; index++) {
+            Booster booster = selectBooster(index + 1);
+            if (booster == null) {
+                return false;
+            }
+            selectedBoosters.add(booster);
+        }
+
+        try {
+            configuredRocket = rocketConfigurationService.buildRocket(selectedLauncher, selectedCapsule, selectedBoosters);
+            showMessage("Rocket configured", configuredRocket.getSummary());
+            return true;
+        } catch (IllegalArgumentException exception) {
+            configuredRocket = null;
+            showMessage("Configuration failed", exception.getMessage());
+            return false;
+        }
+    }
+
+    private int selectBoosterCount() {
+        int maxBoosters = selectedLauncher.getMaxBoosters();
+        List<String> options = new ArrayList<>();
+
+        for (int index = 0; index <= maxBoosters; index++) {
+            options.add(index + " booster" + (index == 1 ? "" : "s"));
+        }
+
+        options.add("Back");
+        int choice = showSelectionMenu("Booster count", options);
+        if (choice == options.size() - 1) {
+            return -1;
+        }
+
+        return choice;
+    }
+
+    private Booster selectBooster(int boosterNumber) {
+        List<Booster> boosters = componentCatalog.getBoosters();
+        List<String> options = new ArrayList<>();
+
+        for (Booster booster : boosters) {
+            options.add(booster.getName()
                     + " | thrust " + booster.getAdditionalThrustKilonewtons() + " kN"
                     + " | mass " + booster.getMassTons() + " t"
                     + " | price " + booster.getPriceMillionEuros() + " M EUR");
         }
 
-        System.out.print("How many boosters do you want to add? ");
-        int boosterCount = readNonNegativeInteger();
-
-        for (int index = 0; index < boosterCount; index++) {
-            System.out.print("Choose booster " + (index + 1) + ": ");
-            int choice = readChoice(1, boosters.size());
-            selectedBoosters.add(boosters.get(choice - 1));
+        options.add("Back");
+        int choice = showSelectionMenu("Choose booster " + boosterNumber, options);
+        if (choice == options.size() - 1) {
+            return null;
         }
 
-        System.out.println("Selected boosters: " + selectedBoosters.size());
-        try {
-            configuredRocket = rocketConfigurationService.buildRocket(selectedLauncher, selectedCapsule, selectedBoosters);
-            System.out.println();
-            System.out.println(configuredRocket.getSummary());
-        } catch (IllegalArgumentException exception) {
-            configuredRocket = null;
-            System.out.println(exception.getMessage());
-        }
+        return boosters.get(choice);
     }
 
     private void selectMission() {
-        List<Mission> missions = componentCatalog.getMissions();
-        System.out.println();
-        System.out.println("Available missions");
+        while (true) {
+            List<Mission> missions = componentCatalog.getMissions();
+            List<String> options = new ArrayList<>();
 
-        for (int index = 0; index < missions.size() - 1; index++) {
-            Mission mission = missions.get(index);
-            System.out.println((index + 1) + ". " + mission.getName()
-                    + " | crew required " + formatBoolean(mission.isCrewRequired())
-                    + " | distance " + mission.getDistanceKilometers() + " km"
-                    + " | duration " + mission.getDuration()
-                    + " | fuel coefficient " + mission.getFuelCoefficient());
-        }
+            for (int index = 0; index < missions.size() - 1; index++) {
+                Mission mission = missions.get(index);
+                options.add(mission.getName()
+                        + " | crew required " + formatBoolean(mission.isCrewRequired())
+                        + " | distance " + mission.getDistanceKilometers() + " km"
+                        + " | duration " + mission.getDuration()
+                        + " | fuel coefficient " + mission.getFuelCoefficient());
+            }
 
-        System.out.println(missions.size() + ". Custom mission");
-        System.out.print("Choose a mission: ");
-        int choice = readChoice(1, missions.size());
-        if (choice == missions.size()) {
-            selectedMission = createCustomMission();
-        } else {
-            selectedMission = missions.get(choice - 1);
+            options.add("Custom mission");
+            options.add("Back");
+            int choice = showSelectionMenu("Available missions", options);
+
+            if (choice == options.size() - 1) {
+                return;
+            }
+
+            if (choice == options.size() - 2) {
+                Mission customMission = createCustomMission();
+                if (customMission != null) {
+                    selectedMission = customMission;
+                    showMessage("Mission selected", selectedMission.getName());
+                    return;
+                }
+            } else {
+                selectedMission = missions.get(choice);
+                showMessage("Mission selected", selectedMission.getName());
+                return;
+            }
         }
-        System.out.println("Selected mission: " + selectedMission.getName());
     }
 
     private Mission createCustomMission() {
+        clearScreen();
+        System.out.println("Custom mission");
+        System.out.println();
+        System.out.println("Leave the mission name empty to go back.");
+        System.out.println();
         System.out.print("Mission name: ");
-        String name = readRequiredText();
+        String name = scanner.nextLine();
+
+        if (name.isBlank()) {
+            return null;
+        }
+
         System.out.print("Crew required? yes/no: ");
         boolean crewRequired = readYesNo();
         System.out.print("Distance in kilometers: ");
@@ -197,73 +268,143 @@ public class ConsoleInterface {
 
     private void runLaunchSimulation() {
         if (configuredRocket == null) {
-            System.out.println("Configure a rocket before running a simulation.");
+            showMessage("Simulation unavailable", "Configure a rocket before running a simulation.");
             return;
         }
 
         if (selectedMission == null) {
-            System.out.println("Choose a mission before running a simulation.");
+            showMessage("Simulation unavailable", "Choose a mission before running a simulation.");
             return;
         }
 
         LaunchResult launchResult = launchSimulationService.runLaunch(configuredRocket, selectedMission);
-        System.out.println();
-        System.out.println(launchResult.getSummary());
+        showMessage("Launch result", launchResult.getSummary());
     }
 
     private void displayHistory() {
         List<LaunchResult> history = launchHistoryService.getHistory();
-        System.out.println();
-        System.out.println("Launch history");
+        StringBuilder content = new StringBuilder();
 
         if (history.isEmpty()) {
-            System.out.println("No launch history yet.");
-            return;
+            content.append("No launch history yet.");
+        } else {
+            for (int index = 0; index < history.size(); index++) {
+                content.append("Launch ").append(index + 1).append("\n");
+                content.append(history.get(index).getSummary());
+
+                if (index < history.size() - 1) {
+                    content.append("\n\n");
+                }
+            }
         }
 
-        for (int index = 0; index < history.size(); index++) {
-            System.out.println();
-            System.out.println("Launch " + (index + 1));
-            System.out.println(history.get(index).getSummary());
+        showMessage("Launch history", content.toString());
+    }
+
+    private int showSelectionMenu(String title, List<String> options) {
+        int selectedIndex = 0;
+        enableRawMode();
+
+        try {
+            while (true) {
+                drawSelectionMenu(title, options, selectedIndex);
+                int key = readKey();
+
+                if (key == KEY_UP) {
+                    selectedIndex = selectedIndex == 0 ? options.size() - 1 : selectedIndex - 1;
+                } else if (key == KEY_DOWN) {
+                    selectedIndex = selectedIndex == options.size() - 1 ? 0 : selectedIndex + 1;
+                } else if (key == KEY_ENTER) {
+                    return selectedIndex;
+                }
+            }
+        } finally {
+            disableRawMode();
+        }
+    }
+
+    private void drawSelectionMenu(String title, List<String> options, int selectedIndex) {
+        clearScreen();
+        System.out.println(title);
+        System.out.println();
+
+        for (int index = 0; index < options.size(); index++) {
+            String prefix = index == selectedIndex ? "-> " : "   ";
+            String value = prefix + options.get(index);
+
+            if (index == selectedIndex) {
+                System.out.println(HIGHLIGHT + value + RESET);
+            } else {
+                System.out.println(value);
+            }
+        }
+
+        System.out.println();
+        System.out.println("Use up/down arrows and Enter.");
+    }
+
+    private void showMessage(String title, String message) {
+        clearScreen();
+        System.out.println(title);
+        System.out.println();
+        System.out.println(message);
+        System.out.println();
+        System.out.println("Press Enter to go back.");
+        scanner.nextLine();
+    }
+
+    private int readKey() {
+        try {
+            int first = System.in.read();
+
+            if (first == 13 || first == 10) {
+                return KEY_ENTER;
+            }
+
+            if (first == 27 && System.in.read() == 91) {
+                int third = System.in.read();
+                if (third == 65) {
+                    return KEY_UP;
+                }
+                if (third == 66) {
+                    return KEY_DOWN;
+                }
+            }
+
+            return first;
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to read keyboard input", exception);
+        }
+    }
+
+    private void clearScreen() {
+        System.out.print(CLEAR_SCREEN);
+        System.out.flush();
+    }
+
+    private void enableRawMode() {
+        runTerminalCommand("stty", "-echo", "raw");
+    }
+
+    private void disableRawMode() {
+        runTerminalCommand("stty", "echo", "-raw");
+    }
+
+    private void runTerminalCommand(String... command) {
+        try {
+            new ProcessBuilder(command)
+                    .redirectInput(Redirect.INHERIT)
+                    .redirectOutput(Redirect.DISCARD)
+                    .redirectError(Redirect.DISCARD)
+                    .start()
+                    .waitFor();
+        } catch (IOException | InterruptedException exception) {
+            Thread.currentThread().interrupt();
         }
     }
 
     private String formatBoolean(boolean value) {
         return value ? "Yes" : "No";
-    }
-
-    private int readMenuChoice() {
-        return readChoice(1, 5);
-    }
-
-    private int readChoice(int minimum, int maximum) {
-        while (true) {
-            try {
-                int value = Integer.parseInt(scanner.nextLine());
-                if (value >= minimum && value <= maximum) {
-                    return value;
-                }
-            } catch (NumberFormatException exception) {
-                System.out.print("Enter a valid number: ");
-                continue;
-            }
-            System.out.print("Enter a number between " + minimum + " and " + maximum + ": ");
-        }
-    }
-
-    private int readNonNegativeInteger() {
-        while (true) {
-            try {
-                int value = Integer.parseInt(scanner.nextLine());
-                if (value >= 0) {
-                    return value;
-                }
-            } catch (NumberFormatException exception) {
-                System.out.print("Enter a valid number: ");
-                continue;
-            }
-            System.out.print("Enter zero or a positive number: ");
-        }
     }
 
     private double readPositiveDouble() {
