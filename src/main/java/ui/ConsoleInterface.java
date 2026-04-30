@@ -2,26 +2,36 @@ package ui;
 
 import domain.booster.Booster;
 import domain.capsule.Capsule;
+import domain.launch.LaunchResult;
 import domain.launcher.Launcher;
 import domain.mission.CustomMission;
 import domain.mission.Mission;
+import domain.rocket.Rocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import persistence.LaunchHistoryService;
 import service.ComponentCatalog;
+import service.LaunchSimulationService;
+import service.RocketConfigurationService;
 
 public class ConsoleInterface {
     private final Scanner scanner;
     private final ComponentCatalog componentCatalog;
+    private final RocketConfigurationService rocketConfigurationService;
+    private final LaunchSimulationService launchSimulationService;
     private Launcher selectedLauncher;
     private Capsule selectedCapsule;
     private List<Booster> selectedBoosters;
     private Mission selectedMission;
+    private Rocket configuredRocket;
     private boolean running;
 
-    public ConsoleInterface() {
+    public ConsoleInterface(LaunchHistoryService launchHistoryService) {
         this.scanner = new Scanner(System.in);
         this.componentCatalog = new ComponentCatalog();
+        this.rocketConfigurationService = new RocketConfigurationService();
+        this.launchSimulationService = new LaunchSimulationService(launchHistoryService);
         this.selectedBoosters = new ArrayList<>();
         this.running = true;
     }
@@ -55,6 +65,8 @@ public class ConsoleInterface {
                 selectMission();
                 break;
             case "3":
+                runLaunchSimulation();
+                break;
             case "4":
                 System.out.println("This feature is not available yet.");
                 break;
@@ -132,6 +144,9 @@ public class ConsoleInterface {
         }
 
         System.out.println("Selected boosters: " + selectedBoosters.size());
+        configuredRocket = rocketConfigurationService.buildRocket(selectedLauncher, selectedCapsule, selectedBoosters);
+        System.out.println();
+        System.out.println(configuredRocket.getSummary());
     }
 
     private void selectMission() {
@@ -171,6 +186,22 @@ public class ConsoleInterface {
         System.out.print("Fuel coefficient: ");
         double fuelCoefficient = Double.parseDouble(scanner.nextLine());
         return new CustomMission(name, crewRequired, distanceKilometers, duration, fuelCoefficient);
+    }
+
+    private void runLaunchSimulation() {
+        if (configuredRocket == null) {
+            System.out.println("Configure a rocket before running a simulation.");
+            return;
+        }
+
+        if (selectedMission == null) {
+            System.out.println("Choose a mission before running a simulation.");
+            return;
+        }
+
+        LaunchResult launchResult = launchSimulationService.runLaunch(configuredRocket, selectedMission);
+        System.out.println();
+        System.out.println(launchResult.getSummary());
     }
 
     private String formatBoolean(boolean value) {

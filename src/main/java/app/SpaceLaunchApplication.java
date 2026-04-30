@@ -17,7 +17,7 @@ public class SpaceLaunchApplication {
 
     public void start() {
         loadHistory();
-        ConsoleInterface consoleInterface = new ConsoleInterface();
+        ConsoleInterface consoleInterface = new ConsoleInterface(launchHistoryService);
         consoleInterface.start();
     }
 
