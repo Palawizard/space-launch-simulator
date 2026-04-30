@@ -19,8 +19,8 @@ import service.RocketConfigurationService;
 
 public class ConsoleInterface {
     private static final String APP_TITLE = "Space Launch Simulator";
-    private static final String CLEAR_SCREEN = "\033[H\033[2J";
     private static final String RESET = "\033[0m";
+    private static final String CLEAR_SCREEN = RESET + "\033[2J\033[3J\033[H";
     private static final String HIGHLIGHT = "\033[7m";
     private static final int KEY_ENTER = 10;
     private static final int KEY_UP = 1001;
