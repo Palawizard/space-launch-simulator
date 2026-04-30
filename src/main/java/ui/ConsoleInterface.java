@@ -383,11 +383,11 @@ public class ConsoleInterface {
     }
 
     private void enableRawMode() {
-        runTerminalCommand("stty", "-echo", "raw");
+        runTerminalCommand("stty", "-echo", "-icanon", "min", "1", "time", "0");
     }
 
     private void disableRawMode() {
-        runTerminalCommand("stty", "echo", "-raw");
+        runTerminalCommand("stty", "echo", "icanon");
     }
 
     private void runTerminalCommand(String... command) {
