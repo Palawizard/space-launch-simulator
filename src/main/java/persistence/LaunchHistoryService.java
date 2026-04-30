@@ -44,7 +44,17 @@ public class LaunchHistoryService {
     }
 
     public void loadHistory() throws IOException {
+        if (!Files.exists(historyPath) || Files.size(historyPath) == 0) {
+            replaceHistory(new ArrayList<>());
+            return;
+        }
+
         List<String> lines = Files.readAllLines(historyPath);
+        if (lines.size() <= 1) {
+            replaceHistory(new ArrayList<>());
+            return;
+        }
+
         List<LaunchResult> loadedHistory = new ArrayList<>();
 
         for (int index = 1; index < lines.size(); index++) {
