@@ -2,14 +2,14 @@ package domain.mission;
 
 import domain.rocket.Rocket;
 
-public class MoonMission extends Mission {
-    public MoonMission() {
-        super("Moon", true, 400000, "8 to 10 days", 0.005);
+public class EuropaProbeMission extends Mission {
+    public EuropaProbeMission() {
+        super("Europa probe", false, 628300000, "5 to 7 years", 0.000006);
     }
 
     @Override
     public String getObjective() {
-        return "Reach lunar orbit";
+        return "Send an uncrewed probe to Europa";
     }
 
     @Override

@@ -3,6 +3,7 @@ package service;
 import domain.launch.LaunchResult;
 import domain.mission.Mission;
 import domain.rocket.Rocket;
+import exception.IncompatibleCrewedLauncherException;
 import exception.IncompatibleCrewedMissionException;
 import exception.InsufficientFuelException;
 import exception.LaunchException;
@@ -39,7 +40,7 @@ public class LaunchSimulationService {
     }
 
     public double calculateFuelRequiredTons(Rocket rocket, Mission mission) {
-        return (rocket.getTotalMassTons() * mission.getDistanceKilometers() * mission.getFuelCoefficient()) / 1000;
+        return mission.calculateFuelRequiredTons(rocket);
     }
 
     public double calculateLaunchCostEuros(Rocket rocket, Mission mission) {
@@ -61,7 +62,19 @@ public class LaunchSimulationService {
             throw new TooManyBoostersException();
         }
 
-        if (mission.isCrewRequired() && (!rocket.getCapsule().isCrewed() || rocket.getCapsule().getMaxOccupants() <= 0)) {
+        validateCrewedMissionCompatibility(rocket, mission);
+    }
+
+    private void validateCrewedMissionCompatibility(Rocket rocket, Mission mission) throws LaunchException {
+        if (!mission.isCrewRequired()) {
+            return;
+        }
+
+        if (!rocket.getLauncher().isCrewed()) {
+            throw new IncompatibleCrewedLauncherException();
+        }
+
+        if (!rocket.getCapsule().isCrewed() || rocket.getCapsule().getMaxOccupants() <= 0) {
             throw new IncompatibleCrewedMissionException();
         }
     }

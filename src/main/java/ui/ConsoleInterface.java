@@ -1,5 +1,6 @@
 package ui;
 
+import app.Simulator;
 import domain.booster.Booster;
 import domain.capsule.Capsule;
 import domain.launch.LaunchResult;
@@ -7,15 +8,13 @@ import domain.launcher.Launcher;
 import domain.mission.CustomMission;
 import domain.mission.Mission;
 import domain.rocket.Rocket;
+import exception.LaunchException;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
-import persistence.LaunchHistoryService;
-import service.ComponentCatalog;
-import service.LaunchSimulationService;
-import service.RocketConfigurationService;
 
 public class ConsoleInterface {
     private static final String APP_TITLE = "Space Launch Simulator";
@@ -28,10 +27,7 @@ public class ConsoleInterface {
     private static final int KEY_END = -1;
 
     private final Scanner scanner;
-    private final ComponentCatalog componentCatalog;
-    private final RocketConfigurationService rocketConfigurationService;
-    private final LaunchSimulationService launchSimulationService;
-    private final LaunchHistoryService launchHistoryService;
+    private final Simulator simulator;
     private Launcher selectedLauncher;
     private Capsule selectedCapsule;
     private List<Booster> selectedBoosters;
@@ -39,12 +35,9 @@ public class ConsoleInterface {
     private Rocket configuredRocket;
     private boolean running;
 
-    public ConsoleInterface(LaunchHistoryService launchHistoryService) {
+    public ConsoleInterface(Simulator simulator) {
         this.scanner = new Scanner(System.in);
-        this.componentCatalog = new ComponentCatalog();
-        this.rocketConfigurationService = new RocketConfigurationService();
-        this.launchSimulationService = new LaunchSimulationService(launchHistoryService);
-        this.launchHistoryService = launchHistoryService;
+        this.simulator = simulator;
         this.selectedBoosters = new ArrayList<>();
         this.running = true;
     }
@@ -100,7 +93,7 @@ public class ConsoleInterface {
     }
 
     private boolean selectLauncher() {
-        List<Launcher> launchers = componentCatalog.getLaunchers();
+        List<Launcher> launchers = simulator.getLaunchers();
         List<String> options = new ArrayList<>();
 
         for (Launcher launcher : launchers) {
@@ -122,7 +115,7 @@ public class ConsoleInterface {
     }
 
     private boolean selectCapsule() {
-        List<Capsule> capsules = componentCatalog.getCapsules();
+        List<Capsule> capsules = simulator.getCapsules();
         List<String> options = new ArrayList<>();
 
         for (Capsule capsule : capsules) {
@@ -160,7 +153,7 @@ public class ConsoleInterface {
         }
 
         try {
-            configuredRocket = rocketConfigurationService.buildRocket(selectedLauncher, selectedCapsule, selectedBoosters);
+            configuredRocket = simulator.buildRocket(selectedLauncher, selectedCapsule, selectedBoosters);
             showMessage("Rocket configured", configuredRocket.getSummary());
             return true;
         } catch (IllegalArgumentException exception) {
@@ -188,7 +181,7 @@ public class ConsoleInterface {
     }
 
     private Booster selectBooster(int boosterNumber) {
-        List<Booster> boosters = componentCatalog.getBoosters();
+        List<Booster> boosters = simulator.getBoosters();
         List<String> options = new ArrayList<>();
 
         for (Booster booster : boosters) {
@@ -209,11 +202,10 @@ public class ConsoleInterface {
 
     private void selectMission() {
         while (true) {
-            List<Mission> missions = componentCatalog.getMissions();
+            List<Mission> missions = simulator.getMissions();
             List<String> options = new ArrayList<>();
 
-            for (int index = 0; index < missions.size() - 1; index++) {
-                Mission mission = missions.get(index);
+            for (Mission mission : missions) {
                 options.add(mission.getName()
                         + " | crew required " + formatBoolean(mission.isCrewRequired())
                         + " | distance " + mission.getDistanceKilometers() + " km"
@@ -233,12 +225,12 @@ public class ConsoleInterface {
                 Mission customMission = createCustomMission();
                 if (customMission != null) {
                     selectedMission = customMission;
-                    showMessage("Mission selected", selectedMission.getName());
+                    showMissionSelectionMessage();
                     return;
                 }
             } else {
                 selectedMission = missions.get(choice);
-                showMessage("Mission selected", selectedMission.getName());
+                showMissionSelectionMessage();
                 return;
             }
         }
@@ -280,13 +272,13 @@ public class ConsoleInterface {
             return;
         }
 
-        LaunchResult launchResult = launchSimulationService.runLaunch(configuredRocket, selectedMission);
+        LaunchResult launchResult = simulator.runLaunch(configuredRocket, selectedMission);
         showMessage("Launch result", launchResult.getSummary());
         resetSelection();
     }
 
     private void displayHistory() {
-        List<LaunchResult> history = launchHistoryService.getHistory();
+        List<LaunchResult> history = simulator.getHistory();
         if (history.isEmpty()) {
             showMessage("Launch history", "No launch history yet.");
             return;
@@ -299,8 +291,10 @@ public class ConsoleInterface {
                 LaunchResult launchResult = history.get(index);
                 options.add((index + 1) + ". "
                         + launchResult.getFormattedDate()
+                        + " | " + getHistoryRocketName(launchResult)
                         + " | " + launchResult.getMissionName()
-                        + " | " + launchResult.getVerdict());
+                        + " | " + launchResult.getVerdict()
+                        + " | " + formatCost(launchResult.getTotalCostEuros()));
             }
 
             options.add("Back");
@@ -320,6 +314,26 @@ public class ConsoleInterface {
         selectedBoosters = new ArrayList<>();
         selectedMission = null;
         configuredRocket = null;
+    }
+
+    private void showMissionSelectionMessage() {
+        String message = selectedMission.getName()
+                + "\nObjective: " + selectedMission.getObjective()
+                + "\nCompatibility: " + getMissionCompatibilityStatus();
+        showMessage("Mission selected", message);
+    }
+
+    private String getMissionCompatibilityStatus() {
+        if (configuredRocket == null) {
+            return "Configure a rocket to check this mission.";
+        }
+
+        try {
+            simulator.validateLaunchConditions(configuredRocket, selectedMission);
+            return "Compatible with the configured rocket.";
+        } catch (LaunchException exception) {
+            return "Launch would fail: " + exception.getMessage();
+        }
     }
 
     private int showSelectionMenu(String title, List<String> options) {
@@ -403,6 +417,38 @@ public class ConsoleInterface {
             boosterNames.add(booster.getName());
         }
         return selectedBoosters.size() + " (" + String.join(", ", boosterNames) + ")";
+    }
+
+    private String getHistoryRocketName(LaunchResult launchResult) {
+        String launcher = getSummaryValue(launchResult.getRocketSummary(), "Launcher: ");
+        String capsule = getSummaryValue(launchResult.getRocketSummary(), "Capsule: ");
+
+        if (launcher.isBlank() && capsule.isBlank()) {
+            return "Rocket";
+        }
+
+        if (capsule.isBlank()) {
+            return launcher;
+        }
+
+        if (launcher.isBlank()) {
+            return capsule;
+        }
+
+        return launcher + " + " + capsule;
+    }
+
+    private String getSummaryValue(String summary, String label) {
+        for (String line : summary.split("\\n")) {
+            if (line.startsWith(label)) {
+                return line.substring(label.length());
+            }
+        }
+        return "";
+    }
+
+    private String formatCost(double costEuros) {
+        return String.format(Locale.US, "%.2f EUR", costEuros);
     }
 
     private void showMessage(String title, String message) {
