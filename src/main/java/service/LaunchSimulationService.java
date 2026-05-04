@@ -62,11 +62,19 @@ public class LaunchSimulationService {
             throw new TooManyBoostersException();
         }
 
-        if (mission.isCrewRequired() && !rocket.getLauncher().isCrewed()) {
+        validateCrewedMissionCompatibility(rocket, mission);
+    }
+
+    private void validateCrewedMissionCompatibility(Rocket rocket, Mission mission) throws LaunchException {
+        if (!mission.isCrewRequired()) {
+            return;
+        }
+
+        if (!rocket.getLauncher().isCrewed()) {
             throw new IncompatibleCrewedLauncherException();
         }
 
-        if (mission.isCrewRequired() && (!rocket.getCapsule().isCrewed() || rocket.getCapsule().getMaxOccupants() <= 0)) {
+        if (!rocket.getCapsule().isCrewed() || rocket.getCapsule().getMaxOccupants() <= 0) {
             throw new IncompatibleCrewedMissionException();
         }
     }
