@@ -40,7 +40,7 @@ public class LaunchSimulationService {
     }
 
     public double calculateFuelRequiredTons(Rocket rocket, Mission mission) {
-        return (rocket.getTotalMassTons() * mission.getDistanceKilometers() * mission.getFuelCoefficient()) / 1000;
+        return mission.calculateFuelRequiredTons(rocket);
     }
 
     public double calculateLaunchCostEuros(Rocket rocket, Mission mission) {

@@ -1,5 +1,7 @@
 package domain.mission;
 
+import domain.rocket.Rocket;
+
 public class IssMission extends Mission {
     public IssMission() {
         super("ISS", true, 400, "12 h to a few days", 1.2);
@@ -8,5 +10,10 @@ public class IssMission extends Mission {
     @Override
     public String getObjective() {
         return "Dock with the International Space Station";
+    }
+
+    @Override
+    public double calculateFuelRequiredTons(Rocket rocket) {
+        return calculateStandardFuelRequiredTons(rocket);
     }
 }

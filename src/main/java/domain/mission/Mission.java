@@ -1,5 +1,7 @@
 package domain.mission;
 
+import domain.rocket.Rocket;
+
 public abstract class Mission {
     private final String name;
     private final boolean crewRequired;
@@ -20,6 +22,12 @@ public abstract class Mission {
     public double getDistanceKilometers() { return distanceKilometers; }
     public String getDuration() { return duration; }
     public double getFuelCoefficient() { return fuelCoefficient; }
+
+    public abstract double calculateFuelRequiredTons(Rocket rocket);
+
+    protected double calculateStandardFuelRequiredTons(Rocket rocket) {
+        return (rocket.getTotalMassTons() * distanceKilometers * fuelCoefficient) / 1000;
+    }
 
     public abstract String getObjective();
 }
