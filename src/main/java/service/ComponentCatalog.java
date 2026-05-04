@@ -11,8 +11,8 @@ import domain.launcher.Falcon9Launcher;
 import domain.launcher.Launcher;
 import domain.launcher.SaturnVLauncher;
 import domain.launcher.SlsLauncher;
-import domain.mission.CustomMission;
 import domain.mission.EarthOrbitMission;
+import domain.mission.EuropaProbeMission;
 import domain.mission.IssMission;
 import domain.mission.MarsMission;
 import domain.mission.Mission;
@@ -52,7 +52,7 @@ public class ComponentCatalog {
                 new IssMission(),
                 new MoonMission(),
                 new MarsMission(),
-                new CustomMission("Personal mission", false, 1000, "Custom duration", 0.5)
+                new EuropaProbeMission()
         );
     }
 }

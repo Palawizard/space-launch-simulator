@@ -7,10 +7,12 @@ import domain.launcher.Launcher;
 import domain.mission.CustomMission;
 import domain.mission.Mission;
 import domain.rocket.Rocket;
+import exception.LaunchException;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 import persistence.LaunchHistoryService;
 import service.ComponentCatalog;
@@ -212,8 +214,7 @@ public class ConsoleInterface {
             List<Mission> missions = componentCatalog.getMissions();
             List<String> options = new ArrayList<>();
 
-            for (int index = 0; index < missions.size() - 1; index++) {
-                Mission mission = missions.get(index);
+            for (Mission mission : missions) {
                 options.add(mission.getName()
                         + " | crew required " + formatBoolean(mission.isCrewRequired())
                         + " | distance " + mission.getDistanceKilometers() + " km"
@@ -233,12 +234,12 @@ public class ConsoleInterface {
                 Mission customMission = createCustomMission();
                 if (customMission != null) {
                     selectedMission = customMission;
-                    showMessage("Mission selected", selectedMission.getName());
+                    showMissionSelectionMessage();
                     return;
                 }
             } else {
                 selectedMission = missions.get(choice);
-                showMessage("Mission selected", selectedMission.getName());
+                showMissionSelectionMessage();
                 return;
             }
         }
@@ -299,8 +300,10 @@ public class ConsoleInterface {
                 LaunchResult launchResult = history.get(index);
                 options.add((index + 1) + ". "
                         + launchResult.getFormattedDate()
+                        + " | " + getHistoryRocketName(launchResult)
                         + " | " + launchResult.getMissionName()
-                        + " | " + launchResult.getVerdict());
+                        + " | " + launchResult.getVerdict()
+                        + " | " + formatCost(launchResult.getTotalCostEuros()));
             }
 
             options.add("Back");
@@ -320,6 +323,26 @@ public class ConsoleInterface {
         selectedBoosters = new ArrayList<>();
         selectedMission = null;
         configuredRocket = null;
+    }
+
+    private void showMissionSelectionMessage() {
+        String message = selectedMission.getName()
+                + "\nObjective: " + selectedMission.getObjective()
+                + "\nCompatibility: " + getMissionCompatibilityStatus();
+        showMessage("Mission selected", message);
+    }
+
+    private String getMissionCompatibilityStatus() {
+        if (configuredRocket == null) {
+            return "Configure a rocket to check this mission.";
+        }
+
+        try {
+            launchSimulationService.validateLaunchConditions(configuredRocket, selectedMission);
+            return "Compatible with the configured rocket.";
+        } catch (LaunchException exception) {
+            return "Launch would fail: " + exception.getMessage();
+        }
     }
 
     private int showSelectionMenu(String title, List<String> options) {
@@ -403,6 +426,38 @@ public class ConsoleInterface {
             boosterNames.add(booster.getName());
         }
         return selectedBoosters.size() + " (" + String.join(", ", boosterNames) + ")";
+    }
+
+    private String getHistoryRocketName(LaunchResult launchResult) {
+        String launcher = getSummaryValue(launchResult.getRocketSummary(), "Launcher: ");
+        String capsule = getSummaryValue(launchResult.getRocketSummary(), "Capsule: ");
+
+        if (launcher.isBlank() && capsule.isBlank()) {
+            return "Rocket";
+        }
+
+        if (capsule.isBlank()) {
+            return launcher;
+        }
+
+        if (launcher.isBlank()) {
+            return capsule;
+        }
+
+        return launcher + " + " + capsule;
+    }
+
+    private String getSummaryValue(String summary, String label) {
+        for (String line : summary.split("\\n")) {
+            if (line.startsWith(label)) {
+                return line.substring(label.length());
+            }
+        }
+        return "";
+    }
+
+    private String formatCost(double costEuros) {
+        return String.format(Locale.US, "%.2f EUR", costEuros);
     }
 
     private void showMessage(String title, String message) {
