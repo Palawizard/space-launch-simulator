@@ -3,6 +3,7 @@ package service;
 import domain.launch.LaunchResult;
 import domain.mission.Mission;
 import domain.rocket.Rocket;
+import exception.IncompatibleCrewedLauncherException;
 import exception.IncompatibleCrewedMissionException;
 import exception.InsufficientFuelException;
 import exception.LaunchException;
@@ -59,6 +60,10 @@ public class LaunchSimulationService {
 
         if (rocket.getBoosters().size() > rocket.getLauncher().getMaxBoosters()) {
             throw new TooManyBoostersException();
+        }
+
+        if (mission.isCrewRequired() && !rocket.getLauncher().isCrewed()) {
+            throw new IncompatibleCrewedLauncherException();
         }
 
         if (mission.isCrewRequired() && (!rocket.getCapsule().isCrewed() || rocket.getCapsule().getMaxOccupants() <= 0)) {
