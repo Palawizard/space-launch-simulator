@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class LaunchHistoryService {
@@ -36,11 +37,13 @@ public class LaunchHistoryService {
 
     public void addResult(LaunchResult launchResult) {
         history.add(launchResult);
+        sortHistoryChronologically();
     }
 
     public void replaceHistory(List<LaunchResult> launchResults) {
         history.clear();
         history.addAll(launchResults);
+        sortHistoryChronologically();
     }
 
     public void loadHistory() throws IOException {
@@ -77,5 +80,9 @@ public class LaunchHistoryService {
         }
 
         Files.write(historyPath, lines);
+    }
+
+    private void sortHistoryChronologically() {
+        history.sort(Comparator.comparing(LaunchResult::getDate));
     }
 }
