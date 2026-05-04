@@ -1,31 +1,26 @@
 package app;
 
-import java.io.IOException;
 import persistence.LaunchHistoryService;
 import ui.ConsoleInterface;
 
 public class SpaceLaunchApplication {
-    private final LaunchHistoryService launchHistoryService;
+    private final Simulator simulator;
 
     public SpaceLaunchApplication() {
-        this(new LaunchHistoryService());
+        this(Simulator.getInstance());
     }
 
     public SpaceLaunchApplication(LaunchHistoryService launchHistoryService) {
-        this.launchHistoryService = launchHistoryService;
+        this(Simulator.getInstance(launchHistoryService));
+    }
+
+    public SpaceLaunchApplication(Simulator simulator) {
+        this.simulator = simulator;
     }
 
     public void start() {
-        loadHistory();
-        ConsoleInterface consoleInterface = new ConsoleInterface(launchHistoryService);
+        simulator.loadHistory();
+        ConsoleInterface consoleInterface = new ConsoleInterface(simulator);
         consoleInterface.start();
-    }
-
-    private void loadHistory() {
-        try {
-            launchHistoryService.loadHistory();
-        } catch (IOException exception) {
-            throw new IllegalStateException("Unable to load launch history", exception);
-        }
     }
 }
