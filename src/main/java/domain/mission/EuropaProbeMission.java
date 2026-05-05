@@ -7,7 +7,7 @@ import domain.rocket.Rocket;
  */
 public class EuropaProbeMission extends Mission {
     public EuropaProbeMission() {
-        super("Europa probe", false, 628300000, "5 to 7 years", 0.000006);
+        super("Europa probe", false, 628300000, "5 to 7 years", 0.00015);
     }
 
     @Override

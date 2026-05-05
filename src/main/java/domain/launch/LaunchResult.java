@@ -2,6 +2,7 @@ package domain.launch;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * result produced by a launch simulation
@@ -68,8 +69,18 @@ public class LaunchResult {
                 + "\nMission: " + missionName
                 + "\nResult: " + getVerdict()
                 + "\nReason: " + reason
-                + "\nFuel required: " + fuelRequiredTons + " t"
-                + "\nTotal cost: " + totalCostEuros + " EUR"
+                + "\n"
+                + "\nFuel required: " + formatDecimal(fuelRequiredTons) + " t"
+                + "\nTotal cost: " + formatCurrency(totalCostEuros) + " EUR"
+                + "\n"
                 + "\nRocket:\n" + rocketSummary;
+    }
+
+    private String formatDecimal(double value) {
+        return String.format(Locale.US, "%,.2f", value);
+    }
+
+    private String formatCurrency(double value) {
+        return String.format(Locale.US, "%,.2f", value);
     }
 }

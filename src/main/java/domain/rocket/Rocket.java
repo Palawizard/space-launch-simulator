@@ -3,6 +3,7 @@ package domain.rocket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import domain.booster.Booster;
 import domain.capsule.Capsule;
@@ -68,15 +69,18 @@ public class Rocket {
                 + "\nLauncher: " + launcher.getName()
                 + "\nLauncher profile: " + launcher.getLaunchProfile()
                 + "\nLauncher max boosters: " + launcher.getMaxBoosters()
-                + "\nLauncher max fuel: " + launcher.getMaxFuelTons() + " t"
-                + "\nLauncher payload capacity: " + launcher.getPayloadCapacityTons() + " t"
+                + "\nLauncher max fuel: " + formatDecimal(launcher.getMaxFuelTons()) + " t"
+                + "\nLauncher payload capacity: " + formatDecimal(launcher.getPayloadCapacityTons()) + " t"
+                + "\n"
                 + "\nCapsule: " + capsule.getName()
                 + "\nCapsule role: " + capsule.getMissionRole()
                 + "\nCapsule crewed: " + formatBoolean(capsule.isCrewed())
                 + "\nCapsule max occupants: " + capsule.getMaxOccupants()
+                + "\n"
                 + "\nBoosters: " + getBoosterSummary()
-                + "\nTotal mass: " + getTotalMassTons() + " t"
-                + "\nTotal price: " + getTotalPriceMillionEuros() + " M EUR";
+                + "\n"
+                + "\nTotal mass: " + formatDecimal(getTotalMassTons()) + " t"
+                + "\nTotal price: " + formatDecimal(getTotalPriceMillionEuros()) + " M EUR";
     }
 
     private String getBoosterSummary() {
@@ -93,5 +97,9 @@ public class Rocket {
 
     private String formatBoolean(boolean value) {
         return value ? "Yes" : "No";
+    }
+
+    private String formatDecimal(double value) {
+        return String.format(Locale.US, "%,.2f", value);
     }
 }
