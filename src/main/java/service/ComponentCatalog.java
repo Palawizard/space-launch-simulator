@@ -1,5 +1,7 @@
 package service;
 
+import java.util.List;
+
 import domain.booster.Booster;
 import domain.capsule.ApolloCapsule;
 import domain.capsule.Capsule;
@@ -17,8 +19,10 @@ import domain.mission.IssMission;
 import domain.mission.MarsMission;
 import domain.mission.Mission;
 import domain.mission.MoonMission;
-import java.util.List;
 
+/**
+ * catalog of available simulator components
+ */
 public class ComponentCatalog {
     public List<Launcher> getLaunchers() {
         return List.of(

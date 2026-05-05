@@ -1,6 +1,5 @@
 package persistence;
 
-import domain.launch.LaunchResult;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,6 +9,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import domain.launch.LaunchResult;
+
+/**
+ * stores and loads launch history
+ */
 public class LaunchHistoryService {
     public static final Path DEFAULT_HISTORY_PATH = Paths.get("data", "launch-history.csv");
 
@@ -35,17 +39,26 @@ public class LaunchHistoryService {
         return Collections.unmodifiableList(history);
     }
 
+    /**
+     * adds a result and keeps history ordered
+     */
     public void addResult(LaunchResult launchResult) {
         history.add(launchResult);
         sortHistoryChronologically();
     }
 
+    /**
+     * replaces memory history with loaded values
+     */
     public void replaceHistory(List<LaunchResult> launchResults) {
         history.clear();
         history.addAll(launchResults);
         sortHistoryChronologically();
     }
 
+    /**
+     * reads history from csv when a file exists
+     */
     public void loadHistory() throws IOException {
         if (!Files.exists(historyPath) || Files.size(historyPath) == 0) {
             replaceHistory(new ArrayList<>());
@@ -67,6 +80,9 @@ public class LaunchHistoryService {
         replaceHistory(loadedHistory);
     }
 
+    /**
+     * writes the current history to csv
+     */
     public void saveHistory() throws IOException {
         if (historyPath.getParent() != null) {
             Files.createDirectories(historyPath.getParent());
@@ -82,6 +98,9 @@ public class LaunchHistoryService {
         Files.write(historyPath, lines);
     }
 
+    /**
+     * keeps oldest launches first
+     */
     private void sortHistoryChronologically() {
         history.sort(Comparator.comparing(LaunchResult::getDate));
     }

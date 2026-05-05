@@ -1,5 +1,8 @@
 package domain.launcher;
 
+/**
+ * ariane launcher preset
+ */
 public class Ariane5Launcher extends Launcher {
     public Ariane5Launcher() {
         super("Ariane 5", false, 2, 700, 20, 180);

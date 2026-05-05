@@ -1,5 +1,8 @@
 package domain.capsule;
 
+/**
+ * cargo dragon capsule preset
+ */
 public class CargoDragonCapsule extends Capsule {
     public CargoDragonCapsule() {
         super("Cargo Dragon", false, 0, 9.5, 100);

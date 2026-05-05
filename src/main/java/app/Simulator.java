@@ -1,5 +1,8 @@
 package app;
 
+import java.io.IOException;
+import java.util.List;
+
 import domain.booster.Booster;
 import domain.capsule.Capsule;
 import domain.launch.LaunchResult;
@@ -7,13 +10,14 @@ import domain.launcher.Launcher;
 import domain.mission.Mission;
 import domain.rocket.Rocket;
 import exception.LaunchException;
-import java.io.IOException;
-import java.util.List;
 import persistence.LaunchHistoryService;
 import service.ComponentCatalog;
 import service.LaunchSimulationService;
 import service.RocketConfigurationService;
 
+/**
+ * facade for the launch simulator
+ */
 public class Simulator {
     private static Simulator instance;
 
@@ -22,10 +26,16 @@ public class Simulator {
     private final LaunchSimulationService launchSimulationService;
     private final LaunchHistoryService launchHistoryService;
 
+    /**
+     * returns the shared simulator instance
+     */
     public static synchronized Simulator getInstance() {
         return getInstance(new LaunchHistoryService());
     }
 
+    /**
+     * returns the shared simulator with custom history storage
+     */
     public static synchronized Simulator getInstance(LaunchHistoryService launchHistoryService) {
         if (instance == null) {
             instance = new Simulator(launchHistoryService);
@@ -56,14 +66,23 @@ public class Simulator {
         return componentCatalog.getMissions();
     }
 
+    /**
+     * delegates rocket assembly to the configuration service
+     */
     public Rocket buildRocket(Launcher launcher, Capsule capsule, List<Booster> boosters) {
         return rocketConfigurationService.buildRocket(launcher, capsule, boosters);
     }
 
+    /**
+     * runs a launch and records its result
+     */
     public LaunchResult runLaunch(Rocket rocket, Mission mission) {
         return launchSimulationService.runLaunch(rocket, mission);
     }
 
+    /**
+     * checks whether the selected rocket can run the mission
+     */
     public void validateLaunchConditions(Rocket rocket, Mission mission) throws LaunchException {
         launchSimulationService.validateLaunchConditions(rocket, mission);
     }
@@ -72,6 +91,9 @@ public class Simulator {
         return launchHistoryService.getHistory();
     }
 
+    /**
+     * loads saved launches before the interface starts
+     */
     public void loadHistory() {
         try {
             launchHistoryService.loadHistory();

@@ -1,5 +1,9 @@
 package service;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Random;
+
 import domain.launch.LaunchResult;
 import domain.mission.Mission;
 import domain.rocket.Rocket;
@@ -10,11 +14,11 @@ import exception.LaunchException;
 import exception.PayloadCapacityExceededException;
 import exception.TechnicalAnomalyException;
 import exception.TooManyBoostersException;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.Random;
 import persistence.LaunchHistoryService;
 
+/**
+ * runs launch checks costs and results
+ */
 public class LaunchSimulationService {
     public static final double PRICE_KEROSENE_PER_TON = 1200;
     public static final double RANDOM_FAILURE_PROBABILITY = 0.05;
@@ -39,16 +43,25 @@ public class LaunchSimulationService {
         this.launchHistoryService = launchHistoryService;
     }
 
+    /**
+     * asks the mission to estimate the needed fuel
+     */
     public double calculateFuelRequiredTons(Rocket rocket, Mission mission) {
         return mission.calculateFuelRequiredTons(rocket);
     }
 
+    /**
+     * combines rocket price and kerosene price
+     */
     public double calculateLaunchCostEuros(Rocket rocket, Mission mission) {
         double rocketPriceEuros = rocket.getTotalPriceMillionEuros() * 1_000_000;
         double fuelPriceEuros = calculateFuelRequiredTons(rocket, mission) * PRICE_KEROSENE_PER_TON;
         return rocketPriceEuros + fuelPriceEuros;
     }
 
+    /**
+     * validates deterministic launch constraints
+     */
     public void validateLaunchConditions(Rocket rocket, Mission mission) throws LaunchException {
         if (calculateFuelRequiredTons(rocket, mission) > rocket.getLauncher().getMaxFuelTons()) {
             throw new InsufficientFuelException();
@@ -65,6 +78,9 @@ public class LaunchSimulationService {
         validateCrewedMissionCompatibility(rocket, mission);
     }
 
+    /**
+     * ensures crewed missions use crew capable hardware
+     */
     private void validateCrewedMissionCompatibility(Rocket rocket, Mission mission) throws LaunchException {
         if (!mission.isCrewRequired()) {
             return;
@@ -79,12 +95,18 @@ public class LaunchSimulationService {
         }
     }
 
+    /**
+     * simulates unpredictable launch failure
+     */
     public void validateRandomLaunchRisk() throws TechnicalAnomalyException {
         if (random.nextDouble() < RANDOM_FAILURE_PROBABILITY) {
             throw new TechnicalAnomalyException();
         }
     }
 
+    /**
+     * runs validation risk calculation and history persistence
+     */
     public LaunchResult runLaunch(Rocket rocket, Mission mission) {
         double fuelRequiredTons = calculateFuelRequiredTons(rocket, mission);
         double totalCostEuros = calculateLaunchCostEuros(rocket, mission);
@@ -102,6 +124,9 @@ public class LaunchSimulationService {
         return launchResult;
     }
 
+    /**
+     * builds the result object shared by success and failure paths
+     */
     private LaunchResult createLaunchResult(Rocket rocket, Mission mission, boolean success, String reason, double fuelRequiredTons, double totalCostEuros) {
         return new LaunchResult(
                 LocalDateTime.now(),
@@ -114,6 +139,9 @@ public class LaunchSimulationService {
         );
     }
 
+    /**
+     * persists the result when history storage is configured
+     */
     private void saveLaunchResult(LaunchResult launchResult) {
         if (launchHistoryService == null) {
             return;

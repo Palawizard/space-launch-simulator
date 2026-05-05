@@ -2,7 +2,11 @@ package domain.launch;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
+/**
+ * result produced by a launch simulation
+ */
 public class LaunchResult {
     private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -61,12 +65,26 @@ public class LaunchResult {
     }
 
     public String getSummary() {
-        return "Date: " + getFormattedDate()
+        return section("launch details")
+                + "\nDate: " + getFormattedDate()
                 + "\nMission: " + missionName
                 + "\nResult: " + getVerdict()
                 + "\nReason: " + reason
-                + "\nFuel required: " + fuelRequiredTons + " t"
-                + "\nTotal cost: " + totalCostEuros + " EUR"
-                + "\nRocket:\n" + rocketSummary;
+                + "\n\n" + section("cost and fuel")
+                + "\nFuel required: " + formatDecimal(fuelRequiredTons) + " t"
+                + "\nTotal cost: " + formatCurrency(totalCostEuros) + " EUR"
+                + "\n\n" + rocketSummary;
+    }
+
+    private String formatDecimal(double value) {
+        return String.format(Locale.US, "%,.2f", value);
+    }
+
+    private String formatCurrency(double value) {
+        return String.format(Locale.US, "%,.2f", value);
+    }
+
+    private String section(String title) {
+        return "---------- " + title.toUpperCase(Locale.US) + " ----------";
     }
 }

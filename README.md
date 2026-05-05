@@ -130,13 +130,14 @@ The application also lets the user create a custom mission from the console.
 The personal mission is `Europa probe`.
 
 It represents an uncrewed probe mission to Europa, one of Jupiter's moons.
+It is the hardest predefined mission in the catalog.
 
 Mission values:
 
 - crew required: no;
 - distance: `628300000 km`;
 - duration: `5 to 7 years`;
-- fuel coefficient: `0.000006`;
+- fuel coefficient: `0.00015`;
 - objective: send an uncrewed probe to Europa.
 
 This mission is implemented by `EuropaProbeMission`, which extends the abstract `Mission` class.
@@ -339,4 +340,5 @@ Useful scenarios:
 
 - Written parts of the README
 - Improvements to the UI behavior for the user
+- Parts of the CSV parser
 - General debugging

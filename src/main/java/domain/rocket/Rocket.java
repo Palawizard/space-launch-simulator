@@ -1,12 +1,17 @@
 package domain.rocket;
 
-import domain.booster.Booster;
-import domain.capsule.Capsule;
-import domain.launcher.Launcher;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
+import domain.booster.Booster;
+import domain.capsule.Capsule;
+import domain.launcher.Launcher;
+
+/**
+ * configured rocket ready for mission checks
+ */
 public class Rocket {
     private final Launcher launcher;
     private final Capsule capsule;
@@ -60,19 +65,22 @@ public class Rocket {
     }
 
     public String getSummary() {
-        return "Rocket configuration"
+        return section("launcher")
                 + "\nLauncher: " + launcher.getName()
                 + "\nLauncher profile: " + launcher.getLaunchProfile()
                 + "\nLauncher max boosters: " + launcher.getMaxBoosters()
-                + "\nLauncher max fuel: " + launcher.getMaxFuelTons() + " t"
-                + "\nLauncher payload capacity: " + launcher.getPayloadCapacityTons() + " t"
+                + "\nLauncher max fuel: " + formatDecimal(launcher.getMaxFuelTons()) + " t"
+                + "\nLauncher payload capacity: " + formatDecimal(launcher.getPayloadCapacityTons()) + " t"
+                + "\n\n" + section("capsule")
                 + "\nCapsule: " + capsule.getName()
                 + "\nCapsule role: " + capsule.getMissionRole()
                 + "\nCapsule crewed: " + formatBoolean(capsule.isCrewed())
                 + "\nCapsule max occupants: " + capsule.getMaxOccupants()
+                + "\n\n" + section("boosters")
                 + "\nBoosters: " + getBoosterSummary()
-                + "\nTotal mass: " + getTotalMassTons() + " t"
-                + "\nTotal price: " + getTotalPriceMillionEuros() + " M EUR";
+                + "\n\n" + section("totals")
+                + "\nTotal mass: " + formatDecimal(getTotalMassTons()) + " t"
+                + "\nTotal price: " + formatDecimal(getTotalPriceMillionEuros()) + " M EUR";
     }
 
     private String getBoosterSummary() {
@@ -89,5 +97,13 @@ public class Rocket {
 
     private String formatBoolean(boolean value) {
         return value ? "Yes" : "No";
+    }
+
+    private String formatDecimal(double value) {
+        return String.format(Locale.US, "%,.2f", value);
+    }
+
+    private String section(String title) {
+        return "---------- " + title.toUpperCase(Locale.US) + " ----------";
     }
 }
