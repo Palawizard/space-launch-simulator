@@ -9,7 +9,6 @@ import java.util.Locale;
  */
 public class LaunchResult {
     private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    private static final String SECTION_SEPARATOR = "----------------------------------------";
 
     private final LocalDateTime date;
     private final String rocketSummary;
@@ -66,16 +65,15 @@ public class LaunchResult {
     }
 
     public String getSummary() {
-        return SECTION_SEPARATOR
+        return section("launch details")
                 + "\nDate: " + getFormattedDate()
                 + "\nMission: " + missionName
                 + "\nResult: " + getVerdict()
                 + "\nReason: " + reason
-                + "\n" + SECTION_SEPARATOR
+                + "\n\n" + section("cost and fuel")
                 + "\nFuel required: " + formatDecimal(fuelRequiredTons) + " t"
                 + "\nTotal cost: " + formatCurrency(totalCostEuros) + " EUR"
-                + "\n" + SECTION_SEPARATOR
-                + "\n" + rocketSummary;
+                + "\n\n" + rocketSummary;
     }
 
     private String formatDecimal(double value) {
@@ -84,5 +82,9 @@ public class LaunchResult {
 
     private String formatCurrency(double value) {
         return String.format(Locale.US, "%,.2f", value);
+    }
+
+    private String section(String title) {
+        return "---------- " + title.toUpperCase(Locale.US) + " ----------";
     }
 }

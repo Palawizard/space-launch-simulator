@@ -1,5 +1,12 @@
 package ui;
 
+import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Scanner;
+
 import app.Simulator;
 import domain.booster.Booster;
 import domain.capsule.Capsule;
@@ -9,12 +16,6 @@ import domain.mission.CustomMission;
 import domain.mission.Mission;
 import domain.rocket.Rocket;
 import exception.LaunchException;
-import java.io.IOException;
-import java.lang.ProcessBuilder.Redirect;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Scanner;
 
 /**
  * interactive console user interface
@@ -80,7 +81,6 @@ public class ConsoleInterface {
             case 4:
                 running = false;
                 clearScreen();
-                System.out.println("Goodbye.");
                 break;
             default:
                 break;
@@ -328,7 +328,7 @@ public class ConsoleInterface {
 
             for (int index = 0; index < history.size(); index++) {
                 LaunchResult launchResult = history.get(index);
-                options.add((index + 1) + ". "
+                options.add(formatHistoryIndex(index + 1)
                         + launchResult.getFormattedDate()
                         + " | " + getHistoryRocketName(launchResult)
                         + " | " + launchResult.getMissionName()
@@ -362,8 +362,10 @@ public class ConsoleInterface {
      * shows the chosen mission with compatibility status
      */
     private void showMissionSelectionMessage() {
-        String message = selectedMission.getName()
+        String message = section("mission")
+                + "\nName: " + selectedMission.getName()
                 + "\nObjective: " + selectedMission.getObjective()
+                + "\n\n" + section("compatibility")
                 + "\nCompatibility: " + getMissionCompatibilityStatus();
         showMessage("Mission selected", message);
     }
@@ -424,8 +426,7 @@ public class ConsoleInterface {
     private void drawSelectionMenu(String title, List<String> options, int selectedIndex, String footer) {
         clearScreen();
         printHeader();
-        System.out.println(title);
-        System.out.println();
+        printScreenTitle(title);
 
         for (int index = 0; index < options.size(); index++) {
             String prefix = index == selectedIndex ? "-> " : "   ";
@@ -452,16 +453,17 @@ public class ConsoleInterface {
      */
     private String getCurrentSelectionSummary() {
         StringBuilder summary = new StringBuilder();
-        summary.append("Current selection").append("\n");
+        summary.append(section("current selection")).append("\n");
         summary.append("Launcher: ").append(selectedLauncher == null ? "None" : selectedLauncher.getName()).append("\n");
         summary.append("Capsule: ").append(selectedCapsule == null ? "None" : selectedCapsule.getName()).append("\n");
         summary.append("Boosters: ").append(getSelectedBoostersSummary()).append("\n");
         summary.append("Mission: ").append(selectedMission == null ? "None" : selectedMission.getName());
 
         if (configuredRocket != null) {
-            summary.append("\n");
-            summary.append("Rocket mass: ").append(configuredRocket.getTotalMassTons()).append(" t").append("\n");
-            summary.append("Rocket price: ").append(configuredRocket.getTotalPriceMillionEuros()).append(" M EUR");
+            summary.append("\n\n");
+            summary.append(section("rocket totals")).append("\n");
+            summary.append("Rocket mass: ").append(formatDecimal(configuredRocket.getTotalMassTons())).append(" t").append("\n");
+            summary.append("Rocket price: ").append(formatDecimal(configuredRocket.getTotalPriceMillionEuros())).append(" M EUR");
         }
 
         return summary.toString();
@@ -520,7 +522,32 @@ public class ConsoleInterface {
      * formats costs with a stable decimal separator
      */
     private String formatCost(double costEuros) {
-        return String.format(Locale.US, "%.2f EUR", costEuros);
+        return String.format(Locale.US, "%,.2f EUR", costEuros);
+    }
+
+    private String formatDecimal(double value) {
+        return String.format(Locale.US, "%,.2f", value);
+    }
+
+    private String formatHistoryIndex(int index) {
+        return String.format(Locale.US, "%02d | ", index);
+    }
+
+    private String section(String title) {
+        return "---------- " + title.toUpperCase(Locale.US) + " ----------";
+    }
+
+    private void printScreenTitle(String title) {
+        String formattedTitle = title.toUpperCase(Locale.US);
+        int width = Math.max(32, formattedTitle.length() + 8);
+        int leftPadding = (width - formattedTitle.length()) / 2;
+        int rightPadding = width - formattedTitle.length() - leftPadding;
+        String border = "=".repeat(width);
+
+        System.out.println(border);
+        System.out.println(" ".repeat(leftPadding) + formattedTitle + " ".repeat(rightPadding));
+        System.out.println(border);
+        System.out.println();
     }
 
     /**
@@ -529,8 +556,7 @@ public class ConsoleInterface {
     private void showMessage(String title, String message) {
         clearScreen();
         printHeader();
-        System.out.println(title);
-        System.out.println();
+        printScreenTitle(title);
         System.out.println(message);
         System.out.println();
         System.out.println("Press Enter to go back.");

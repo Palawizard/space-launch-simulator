@@ -340,4 +340,5 @@ Useful scenarios:
 
 - Written parts of the README
 - Improvements to the UI behavior for the user
+- Parts of the CSV parser
 - General debugging
