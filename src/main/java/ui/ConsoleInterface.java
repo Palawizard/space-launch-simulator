@@ -287,7 +287,7 @@ public class ConsoleInterface {
         boolean crewRequired = readYesNo();
         System.out.print("Distance in kilometers: ");
         double distanceKilometers = readPositiveDouble();
-        System.out.print("Duration: ");
+        System.out.print("Duration (for example: 6 months, 2 years): ");
         String duration = readRequiredText();
         System.out.print("Fuel coefficient: ");
         double fuelCoefficient = readPositiveDouble();

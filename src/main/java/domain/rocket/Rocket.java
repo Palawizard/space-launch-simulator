@@ -13,6 +13,8 @@ import domain.launcher.Launcher;
  * configured rocket ready for mission checks
  */
 public class Rocket {
+    private static final String SECTION_SEPARATOR = "----------------------------------------";
+
     private final Launcher launcher;
     private final Capsule capsule;
     private final List<Booster> boosters;
@@ -66,19 +68,20 @@ public class Rocket {
 
     public String getSummary() {
         return "Rocket configuration"
+                + "\n" + SECTION_SEPARATOR
                 + "\nLauncher: " + launcher.getName()
                 + "\nLauncher profile: " + launcher.getLaunchProfile()
                 + "\nLauncher max boosters: " + launcher.getMaxBoosters()
                 + "\nLauncher max fuel: " + formatDecimal(launcher.getMaxFuelTons()) + " t"
                 + "\nLauncher payload capacity: " + formatDecimal(launcher.getPayloadCapacityTons()) + " t"
-                + "\n"
+                + "\n" + SECTION_SEPARATOR
                 + "\nCapsule: " + capsule.getName()
                 + "\nCapsule role: " + capsule.getMissionRole()
                 + "\nCapsule crewed: " + formatBoolean(capsule.isCrewed())
                 + "\nCapsule max occupants: " + capsule.getMaxOccupants()
-                + "\n"
+                + "\n" + SECTION_SEPARATOR
                 + "\nBoosters: " + getBoosterSummary()
-                + "\n"
+                + "\n" + SECTION_SEPARATOR
                 + "\nTotal mass: " + formatDecimal(getTotalMassTons()) + " t"
                 + "\nTotal price: " + formatDecimal(getTotalPriceMillionEuros()) + " M EUR";
     }
