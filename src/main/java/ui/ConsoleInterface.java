@@ -45,6 +45,9 @@ public class ConsoleInterface {
         this.running = true;
     }
 
+    /**
+     * starts the main menu loop
+     */
     public void start() {
         while (running) {
             handleMainMenuChoice(showSelectionMenu("Main menu", List.of(
@@ -57,6 +60,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * routes the selected main menu action
+     */
     private void handleMainMenuChoice(int choice) {
         switch (choice) {
             case 0:
@@ -81,6 +87,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * guides the user through rocket setup
+     */
     private void configureRocket() {
         while (true) {
             if (!selectLauncher()) {
@@ -95,6 +104,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * lets the user choose a launcher preset
+     */
     private boolean selectLauncher() {
         List<Launcher> launchers = simulator.getLaunchers();
         List<String> options = new ArrayList<>();
@@ -117,6 +129,9 @@ public class ConsoleInterface {
         return true;
     }
 
+    /**
+     * lets the user choose a capsule preset
+     */
     private boolean selectCapsule() {
         List<Capsule> capsules = simulator.getCapsules();
         List<String> options = new ArrayList<>();
@@ -139,6 +154,9 @@ public class ConsoleInterface {
         return true;
     }
 
+    /**
+     * lets the user choose and validate boosters
+     */
     private boolean selectBoosters() {
         selectedBoosters = new ArrayList<>();
         int boosterCount = selectBoosterCount();
@@ -166,6 +184,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * asks how many boosters should be added
+     */
     private int selectBoosterCount() {
         int maxBoosters = selectedLauncher.getMaxBoosters();
         List<String> options = new ArrayList<>();
@@ -183,6 +204,9 @@ public class ConsoleInterface {
         return choice;
     }
 
+    /**
+     * lets the user choose one booster preset
+     */
     private Booster selectBooster(int boosterNumber) {
         List<Booster> boosters = simulator.getBoosters();
         List<String> options = new ArrayList<>();
@@ -203,6 +227,9 @@ public class ConsoleInterface {
         return boosters.get(choice);
     }
 
+    /**
+     * lets the user choose a preset or custom mission
+     */
     private void selectMission() {
         while (true) {
             List<Mission> missions = simulator.getMissions();
@@ -239,6 +266,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * builds a custom mission from console input
+     */
     private Mission createCustomMission() {
         clearScreen();
         printHeader();
@@ -264,6 +294,9 @@ public class ConsoleInterface {
         return new CustomMission(name, crewRequired, distanceKilometers, duration, fuelCoefficient);
     }
 
+    /**
+     * runs the selected rocket and mission
+     */
     private void runLaunchSimulation() {
         if (configuredRocket == null) {
             showMessage("Simulation unavailable", "Configure a rocket before running a simulation.");
@@ -280,6 +313,9 @@ public class ConsoleInterface {
         resetSelection();
     }
 
+    /**
+     * shows saved launch results
+     */
     private void displayHistory() {
         List<LaunchResult> history = simulator.getHistory();
         if (history.isEmpty()) {
@@ -311,6 +347,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * clears the current simulation choices
+     */
     private void resetSelection() {
         selectedLauncher = null;
         selectedCapsule = null;
@@ -319,6 +358,9 @@ public class ConsoleInterface {
         configuredRocket = null;
     }
 
+    /**
+     * shows the chosen mission with compatibility status
+     */
     private void showMissionSelectionMessage() {
         String message = selectedMission.getName()
                 + "\nObjective: " + selectedMission.getObjective()
@@ -326,6 +368,9 @@ public class ConsoleInterface {
         showMessage("Mission selected", message);
     }
 
+    /**
+     * checks the selected mission against the configured rocket
+     */
     private String getMissionCompatibilityStatus() {
         if (configuredRocket == null) {
             return "Configure a rocket to check this mission.";
@@ -339,10 +384,16 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * shows a menu without footer text
+     */
     private int showSelectionMenu(String title, List<String> options) {
         return showSelectionMenu(title, options, "");
     }
 
+    /**
+     * shows a keyboard driven selection menu
+     */
     private int showSelectionMenu(String title, List<String> options, String footer) {
         int selectedIndex = 0;
         enableRawMode();
@@ -367,6 +418,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * redraws the menu with the current selection highlighted
+     */
     private void drawSelectionMenu(String title, List<String> options, int selectedIndex, String footer) {
         clearScreen();
         printHeader();
@@ -393,6 +447,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * builds the footer summary for the main menu
+     */
     private String getCurrentSelectionSummary() {
         StringBuilder summary = new StringBuilder();
         summary.append("Current selection").append("\n");
@@ -410,6 +467,9 @@ public class ConsoleInterface {
         return summary.toString();
     }
 
+    /**
+     * formats the selected boosters for display
+     */
     private String getSelectedBoostersSummary() {
         if (selectedBoosters.isEmpty()) {
             return "None";
@@ -422,6 +482,9 @@ public class ConsoleInterface {
         return selectedBoosters.size() + " (" + String.join(", ", boosterNames) + ")";
     }
 
+    /**
+     * extracts a short rocket name from a saved summary
+     */
     private String getHistoryRocketName(LaunchResult launchResult) {
         String launcher = getSummaryValue(launchResult.getRocketSummary(), "Launcher: ");
         String capsule = getSummaryValue(launchResult.getRocketSummary(), "Capsule: ");
@@ -441,6 +504,9 @@ public class ConsoleInterface {
         return launcher + " + " + capsule;
     }
 
+    /**
+     * extracts one labeled value from a multiline summary
+     */
     private String getSummaryValue(String summary, String label) {
         for (String line : summary.split("\\n")) {
             if (line.startsWith(label)) {
@@ -450,10 +516,16 @@ public class ConsoleInterface {
         return "";
     }
 
+    /**
+     * formats costs with a stable decimal separator
+     */
     private String formatCost(double costEuros) {
         return String.format(Locale.US, "%.2f EUR", costEuros);
     }
 
+    /**
+     * displays a blocking message screen
+     */
     private void showMessage(String title, String message) {
         clearScreen();
         printHeader();
@@ -467,6 +539,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * reads one key press from the terminal
+     */
     private int readKey() {
         try {
             int first = System.in.read();
@@ -496,25 +571,40 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * clears the terminal viewport
+     */
     private void clearScreen() {
         System.out.print(CLEAR_SCREEN);
         System.out.flush();
     }
 
+    /**
+     * prints the application title
+     */
     private void printHeader() {
         System.out.println(APP_TITLE);
         System.out.println();
     }
 
+    /**
+     * enables immediate keyboard input
+     */
     private void enableRawMode() {
         // lets the menu react without waiting for enter
         runTerminalCommand("stty", "-echo", "-icanon", "min", "1", "time", "0");
     }
 
+    /**
+     * restores normal terminal input
+     */
     private void disableRawMode() {
         runTerminalCommand("stty", "echo", "icanon");
     }
 
+    /**
+     * runs a terminal control command
+     */
     private void runTerminalCommand(String... command) {
         try {
             new ProcessBuilder(command)
@@ -528,10 +618,16 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * formats booleans for the console
+     */
     private String formatBoolean(boolean value) {
         return value ? "Yes" : "No";
     }
 
+    /**
+     * reads a strictly positive number
+     */
     private double readPositiveDouble() {
         while (true) {
             try {
@@ -547,6 +643,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * reads a yes or no answer
+     */
     private boolean readYesNo() {
         while (true) {
             String value = scanner.nextLine();
@@ -560,6 +659,9 @@ public class ConsoleInterface {
         }
     }
 
+    /**
+     * reads a non blank text value
+     */
     private String readRequiredText() {
         while (true) {
             String value = scanner.nextLine();
