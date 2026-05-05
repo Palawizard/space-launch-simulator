@@ -2,6 +2,9 @@ package domain.mission;
 
 import domain.rocket.Rocket;
 
+/**
+ * mission preset for a mars transfer
+ */
 public class MarsMission extends Mission {
     public MarsMission() {
         super("Mars", true, 225000000, "12 to 18 months", 0.000015);

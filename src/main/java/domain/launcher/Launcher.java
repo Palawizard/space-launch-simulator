@@ -1,5 +1,8 @@
 package domain.launcher;
 
+/**
+ * base model for a rocket launcher
+ */
 public abstract class Launcher {
     private final String name;
     private final boolean crewed;

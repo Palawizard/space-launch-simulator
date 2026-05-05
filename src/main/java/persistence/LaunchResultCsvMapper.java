@@ -1,13 +1,20 @@
 package persistence;
 
-import domain.launch.LaunchResult;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import domain.launch.LaunchResult;
+
+/**
+ * maps launch results to csv rows
+ */
 public class LaunchResultCsvMapper {
     public static final String HEADER = "date;mission;success;reason;fuelRequiredTons;totalCostEuros;rocketSummary";
 
+    /**
+     * serializes a launch result into one csv row
+     */
     public String toCsvLine(LaunchResult launchResult) {
         return String.join(";",
                 escape(launchResult.getDate().toString()),
@@ -20,6 +27,9 @@ public class LaunchResultCsvMapper {
         );
     }
 
+    /**
+     * rebuilds a launch result from one csv row
+     */
     public LaunchResult fromCsvLine(String csvLine) {
         List<String> values = splitCsvLine(csvLine);
         return new LaunchResult(
@@ -33,19 +43,29 @@ public class LaunchResultCsvMapper {
         );
     }
 
+    /**
+     * protects separators quotes and line breaks
+     */
     private String escape(String value) {
         return "\"" + value.replace("\\", "\\\\").replace("\"", "\"\"").replace("\n", "\\n") + "\"";
     }
 
+    /**
+     * restores escaped line breaks and backslashes
+     */
     private String unescape(String value) {
         return value.replace("\\n", "\n").replace("\\\\", "\\");
     }
 
+    /**
+     * splits one csv row while respecting quoted fields
+     */
     private List<String> splitCsvLine(String csvLine) {
         List<String> values = new ArrayList<>();
         StringBuilder currentValue = new StringBuilder();
         boolean quoted = false;
 
+        // preserves separators inside quoted values
         for (int index = 0; index < csvLine.length(); index++) {
             char character = csvLine.charAt(index);
 

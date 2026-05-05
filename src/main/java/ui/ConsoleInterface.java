@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
+/**
+ * interactive console user interface
+ */
 public class ConsoleInterface {
     private static final String APP_TITLE = "Space Launch Simulator";
     private static final String RESET = "\033[0m";
@@ -477,6 +480,7 @@ public class ConsoleInterface {
             }
 
             if (first == 27 && System.in.read() == 91) {
+                // reads terminal escape sequences for arrow keys
                 int third = System.in.read();
                 if (third == 65) {
                     return KEY_UP;
@@ -503,6 +507,7 @@ public class ConsoleInterface {
     }
 
     private void enableRawMode() {
+        // lets the menu react without waiting for enter
         runTerminalCommand("stty", "-echo", "-icanon", "min", "1", "time", "0");
     }
 

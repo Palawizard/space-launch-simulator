@@ -1,12 +1,16 @@
 package domain.rocket;
 
-import domain.booster.Booster;
-import domain.capsule.Capsule;
-import domain.launcher.Launcher;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import domain.booster.Booster;
+import domain.capsule.Capsule;
+import domain.launcher.Launcher;
+
+/**
+ * configured rocket ready for mission checks
+ */
 public class Rocket {
     private final Launcher launcher;
     private final Capsule capsule;

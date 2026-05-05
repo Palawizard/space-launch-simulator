@@ -2,6 +2,9 @@ package domain.mission;
 
 import domain.rocket.Rocket;
 
+/**
+ * mission preset for lunar orbit
+ */
 public class MoonMission extends Mission {
     public MoonMission() {
         super("Moon", true, 400000, "8 to 10 days", 0.005);

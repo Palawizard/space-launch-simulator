@@ -1,5 +1,8 @@
 package domain.booster;
 
+/**
+ * reusable rocket thrust booster
+ */
 public class Booster {
     private final String name;
     private final double additionalThrustKilonewtons;
